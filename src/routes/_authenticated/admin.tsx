@@ -68,9 +68,9 @@ function MatchesTab() {
           <div key={m.id} className="bg-white/5 border border-white/10 p-3">
             <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2">{PHASE_LABEL[m.phase as Phase]} · {m.match_code}</div>
             <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
-              <TeamSelect teams={teams} value={m.home_team_id} placeholder={m.home_placeholder} onChange={(v) => setTeamsFn({ data: { match_id: m.id, home_team_id: v, away_team_id: m.away_team_id } }).then(reload)} />
-              <ScoreEditor m={m} onSave={async (h, a) => { await setResult({ data: { match_id: m.id, home_score: h, away_score: a, status: "finished" } }); toast.success("Salvo"); reload(); }} />
-              <TeamSelect teams={teams} value={m.away_team_id} placeholder={m.away_placeholder} onChange={(v) => setTeamsFn({ data: { match_id: m.id, home_team_id: m.home_team_id, away_team_id: v } }).then(reload)} />
+              <TeamSelect teams={teams} value={m.home_team_id} placeholder={m.home_placeholder} onChange={(v: string | null) => setTeamsFn({ data: { match_id: m.id, home_team_id: v, away_team_id: m.away_team_id } }).then(reload)} />
+              <ScoreEditor m={m} onSave={async (h: number, a: number) => { await setResult({ data: { match_id: m.id, home_score: h, away_score: a, status: "finished" } }); toast.success("Salvo"); reload(); }} />
+              <TeamSelect teams={teams} value={m.away_team_id} placeholder={m.away_placeholder} onChange={(v: string | null) => setTeamsFn({ data: { match_id: m.id, home_team_id: m.home_team_id, away_team_id: v } }).then(reload)} />
               <span className={`text-[10px] uppercase tracking-widest ${m.status==="finished"?"text-grass":"text-slate-500"}`}>{m.status}</span>
             </div>
           </div>
