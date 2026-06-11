@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Header } from "@/components/app/Header";
+import { Trophy, Target, Medal, DollarSign, Copy, Check, Smartphone, User } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -63,6 +64,26 @@ function useCountdown(target: string) {
     return () => clearInterval(id);
   }, [target]);
   return t;
+}
+
+function CopyPixButton() {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText("19983972249");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="w-full flex items-center justify-center gap-2 bg-grass hover:brightness-110 text-night font-black uppercase py-4 text-lg tracking-tighter transition-all active:scale-95 rounded-lg"
+    >
+      {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+      {copied ? "Chave Copiada!" : "Copiar Chave Pix"}
+    </button>
+  );
 }
 
 function Landing() {
@@ -169,6 +190,117 @@ function Landing() {
             </div>
           </>
         )}
+      </section>
+
+      {/* REGRAS E PONTUAÇÃO */}
+      <section className="px-6 py-16 max-w-xl mx-auto">
+        <h2 className="font-display text-4xl mb-10 italic uppercase">Regras e Pontuação</h2>
+
+        <div className="space-y-8">
+          {/* Fase de Grupo */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Target className="w-6 h-6 text-grass" />
+              <h3 className="font-display text-2xl uppercase">Fase de Grupo</h3>
+            </div>
+            <div className="space-y-3">
+              {[
+                ["Placar exato", "10 pts", "text-gold"],
+                ["Acertou vencedor + um gol", "7 pts", "text-grass"],
+                ["Acertou vencedor", "5 pts", "text-white"],
+                ["Acertou empate", "5 pts", "text-white"],
+                ["Acertou apenas um gol", "2 pts", "text-slate-400"],
+                ["Errou tudo", "0 pts", "text-slate-500"],
+              ].map(([label, pts, color]) => (
+                <div key={label} className="flex items-center justify-between border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                  <span className="text-sm">{label}</span>
+                  <span className={`font-display text-lg ${color}`}>{pts}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Mata-Mata */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Trophy className="w-6 h-6 text-gold" />
+              <h3 className="font-display text-2xl uppercase">Mata-Mata</h3>
+            </div>
+            <div className="space-y-3">
+              {[
+                ["Placar exato", "15 pts", "text-gold"],
+                ["Acertou vencedor", "8 pts", "text-grass"],
+                ["Acertou um gol", "3 pts", "text-slate-400"],
+                ["Errou tudo", "0 pts", "text-slate-500"],
+              ].map(([label, pts, color]) => (
+                <div key={label} className="flex items-center justify-between border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                  <span className="text-sm">{label}</span>
+                  <span className={`font-display text-lg ${color}`}>{pts}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Torneio */}
+          <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Medal className="w-6 h-6 text-victory" />
+              <h3 className="font-display text-2xl uppercase">Previsões do Torneio</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                ["Campeão", "30 pts"],
+                ["Vice-campeão", "15 pts"],
+                ["3º Lugar", "10 pts"],
+                ["Finalista", "12 pts"],
+                ["Semifinalista", "8 pts"],
+                ["Quartas", "5 pts"],
+                ["Oitavas", "3 pts"],
+                ["1º / 2º Grupo", "5 pts"],
+              ].map(([label, pts]) => (
+                <div key={label} className="bg-white/5 rounded-lg p-3 text-center">
+                  <span className="block text-xs uppercase text-slate-500 mb-1">{label}</span>
+                  <span className="font-display text-xl text-gold">{pts}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PAGAMENTO PIX */}
+      <section className="px-6 py-16 max-w-xl mx-auto">
+        <h2 className="font-display text-4xl mb-10 italic uppercase">Inscrição</h2>
+        <div className="bg-white/5 border border-white/10 rounded-xl p-6 space-y-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-grass/10 p-3 rounded-lg">
+              <DollarSign className="w-6 h-6 text-grass" />
+            </div>
+            <div>
+              <span className="block text-xs uppercase text-slate-500 font-bold tracking-widest">Valor da inscrição</span>
+              <span className="font-display text-3xl text-white">R$ 10,00</span>
+            </div>
+          </div>
+
+          <div className="bg-night/50 border border-white/10 rounded-lg p-5 space-y-4">
+            <div className="flex items-center gap-3">
+              <Smartphone className="w-5 h-5 text-grass" />
+              <div>
+                <span className="block text-xs uppercase text-slate-500 font-bold tracking-widest">Chave Pix</span>
+                <span className="font-mono text-lg text-white tracking-wider">19983972249</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-grass" />
+              <div>
+                <span className="block text-xs uppercase text-slate-500 font-bold tracking-widest">Beneficiário</span>
+                <span className="text-sm text-white">Einstein Hellmeister Soares</span>
+              </div>
+            </div>
+          </div>
+
+          <CopyPixButton />
+        </div>
       </section>
 
       <footer className="px-6 pt-12 pb-20 max-w-xl mx-auto text-center">
