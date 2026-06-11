@@ -3,7 +3,7 @@
 @import "tw-animate-css";
 
 .flag-emoji {
-  font-family: "Twemoji Country Flags", "Apple Color Emoji", "Segoe UI Emoji",
+  font-family: "Twemoji Mozilla", "Apple Color Emoji", "Segoe UI Emoji",
     "Noto Color Emoji", sans-serif;
   font-variant-emoji: emoji;
 }
