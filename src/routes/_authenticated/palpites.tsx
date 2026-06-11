@@ -6,7 +6,7 @@ import { submitAllPredictions } from "@/lib/api/predictions.functions";
 import { Flag } from "@/components/app/Flag";
 import { PHASE_LABEL, PHASE_ORDER, type Phase } from "@/lib/db/types";
 import { toast } from "sonner";
-import { Lock, Clock, CheckCircle2 } from "lucide-react";
+import { Lock, Clock, CheckCircle2, Dices } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/palpites")({ component: PalpitesPage });
 
@@ -19,6 +19,7 @@ function PalpitesPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [randomOpen, setRandomOpen] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
@@ -80,6 +81,21 @@ function PalpitesPage() {
     setScores((s) => ({ ...s, [id]: { h: s[id]?.h ?? "", a: s[id]?.a ?? "", [side]: v.replace(/\D/g, "").slice(0, 2) } as any }));
   }
 
+  function fillRandom() {
+    const next = { ...scores };
+    for (const m of matches) {
+      const started = new Date(m.kickoff_at) <= new Date() || m.status !== "scheduled";
+      if (started) continue;
+      const cur = next[m.id] ?? { h: "", a: "" };
+      const ex = existing[m.id];
+      if ((cur.h !== "" && cur.a !== "") || ex) continue;
+      next[m.id] = { h: String(Math.floor(Math.random() * 5)), a: String(Math.floor(Math.random() * 5)) };
+    }
+    setScores(next);
+    setRandomOpen(false);
+    toast.success("Palpites aleatórios preenchidos. Revise antes de enviar!");
+  }
+
   async function doSubmit() {
     setSubmitting(true);
     try {
@@ -123,6 +139,14 @@ function PalpitesPage() {
         Você pode editar cada palpite até o início da partida. Após o início, o jogo é bloqueado automaticamente.
       </div>
 
+      <button
+        type="button"
+        onClick={() => setRandomOpen(true)}
+        className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gold/20 border border-gold text-gold font-black uppercase py-3 px-5 tracking-tighter hover:bg-gold hover:text-night transition-colors"
+      >
+        <Dices className="size-5" /> 🎲 Preencher Aleatório
+      </button>
+
       {/* phase filter */}
       <div className="flex flex-wrap gap-2">
         {(["all", ...PHASE_ORDER] as const).map((ph) => (
@@ -158,7 +182,7 @@ function PalpitesPage() {
               </div>
               <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <div className="flex items-center gap-2 justify-end">
-                  <Flag flag={m.home?.flag} name={m.home?.name ?? m.home_placeholder} sigla={m.home?.sigla ?? m.home_placeholder} />
+                  <Flag showName flag={m.home?.flag} name={m.home?.name ?? m.home_placeholder} sigla={m.home?.sigla ?? m.home_placeholder} />
                 </div>
                 <div className="flex items-center gap-1">
                   <input value={s.h} onChange={(e) => setScore(m.id,"h",e.target.value)} disabled={disabled} inputMode="numeric" className="w-12 text-center bg-night border border-white/10 py-2 font-display text-2xl disabled:opacity-60" />
@@ -166,7 +190,7 @@ function PalpitesPage() {
                   <input value={s.a} onChange={(e) => setScore(m.id,"a",e.target.value)} disabled={disabled} inputMode="numeric" className="w-12 text-center bg-night border border-white/10 py-2 font-display text-2xl disabled:opacity-60" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Flag flag={m.away?.flag} name={m.away?.name ?? m.away_placeholder} sigla={m.away?.sigla ?? m.away_placeholder} />
+                  <Flag showName flag={m.away?.flag} name={m.away?.name ?? m.away_placeholder} sigla={m.away?.sigla ?? m.away_placeholder} />
                 </div>
               </div>
               {hasResult && (
@@ -195,6 +219,21 @@ function PalpitesPage() {
             <div className="flex gap-2">
               <button onClick={() => setConfirmOpen(false)} className="flex-1 border border-white/20 py-3 font-bold uppercase tracking-widest text-xs">Cancelar</button>
               <button onClick={doSubmit} disabled={submitting} className="flex-1 bg-grass text-night py-3 font-black uppercase tracking-tighter disabled:opacity-50">{submitting?"Salvando...":"Confirmar"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {randomOpen && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-night border border-white/10 max-w-md w-full p-6 space-y-4">
+            <h3 className="font-display text-3xl uppercase italic">Preencher Aleatório</h3>
+            <p className="text-slate-400 text-sm">
+              Deseja preencher todos os palpites <b className="text-white">ainda em aberto</b> com resultados aleatórios (0 a 4 gols)? Os palpites já enviados não serão alterados. Você ainda poderá editar manualmente antes de enviar.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setRandomOpen(false)} className="flex-1 border border-white/20 py-3 font-bold uppercase tracking-widest text-xs">Cancelar</button>
+              <button onClick={fillRandom} className="flex-1 bg-gold text-night py-3 font-black uppercase tracking-tighter">Preencher</button>
             </div>
           </div>
         </div>
