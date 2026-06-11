@@ -2,9 +2,6 @@
 @source "../src";
 @import "tw-animate-css";
 
-/* Twemoji Country Flags — garante renderização de bandeiras no Windows/Chrome desktop */
-@import url("https://cdn.jsdelivr.net/npm/country-flag-emoji-polyfill@0.1.8/dist/TwemojiCountryFlags.css");
-
 .flag-emoji {
   font-family: "Twemoji Country Flags", "Apple Color Emoji", "Segoe UI Emoji",
     "Noto Color Emoji", sans-serif;
