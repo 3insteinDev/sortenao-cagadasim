@@ -13,7 +13,7 @@ export function Flag({
 }) {
   return (
     <span className={`inline-flex items-center gap-1.5 min-w-0 ${className}`}>
-      {flag ? <span className="text-xl leading-none shrink-0">{flag}</span> : null}
+      {flag ? <span className="flag-emoji text-xl leading-none shrink-0">{flag}</span> : null}
       <span className="flex flex-col min-w-0">
         <span className="font-bold uppercase tracking-tight text-xs leading-tight">
           {sigla ?? name ?? "TBD"}
