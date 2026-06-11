@@ -70,7 +70,7 @@ export const recalculateAll = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { supabase } = context;
+    const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
 
     // 1) Match points
     const { data: matches } = await supabase.from("matches").select("id,phase,home_score,away_score,status").eq("status","finished");
