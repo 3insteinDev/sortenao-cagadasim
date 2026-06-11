@@ -53,7 +53,12 @@ function PalpitesPage() {
     })();
   }, []);
 
-  const locked = !!profile?.predictions_submitted_at;
+  // Global lock removed — predictions are editable per match until kickoff.
+  // Tournament classification picks lock once the first match has started.
+  const tournamentLocked = useMemo(
+    () => matches.some((m: any) => new Date(m.kickoff_at) <= new Date() || m.status !== "scheduled"),
+    [matches],
+  );
 
   const byPhase = useMemo(() => {
     const groups: Record<Phase, MatchRow[]> = { group:[], r32:[], r16:[], qf:[], sf:[], third:[], final:[] };
@@ -66,7 +71,9 @@ function PalpitesPage() {
   const totalEditable = matches.filter((m) => m.status === "scheduled" && new Date(m.kickoff_at) > new Date()).length;
   const filledCount = matches.filter((m) => {
     const s = scores[m.id];
-    return s && s.h !== "" && s.a !== "";
+    const ex = existing[m.id];
+    if (s && s.h !== "" && s.a !== "") return true;
+    return !!ex;
   }).length;
 
   function setScore(id: string, side: "h" | "a", v: string) {
@@ -103,18 +110,7 @@ function PalpitesPage() {
         <p className="text-slate-500 text-sm uppercase tracking-widest">Preencha todos os jogos que desejar antes de enviar</p>
       </div>
 
-      {locked && (
-        <div className="bg-victory/10 border border-victory/30 p-4 flex items-center gap-3">
-          <Lock className="size-5 text-victory" />
-          <div className="flex-1">
-            <div className="font-bold uppercase text-sm">Palpites bloqueados</div>
-            <div className="text-xs text-slate-400">Enviados em {new Date(profile.predictions_submitted_at).toLocaleString("pt-BR")}</div>
-          </div>
-        </div>
-      )}
-
-      {!locked && (
-        <div className="bg-white/5 border border-white/10 p-4">
+      <div className="bg-white/5 border border-white/10 p-4">
           <div className="flex justify-between text-xs uppercase tracking-widest text-slate-400 mb-2">
             <span>Progresso</span>
             <span>{filledCount} de {totalEditable} jogos preenchidos ({totalEditable ? Math.round((filledCount/totalEditable)*100) : 0}%)</span>
@@ -122,8 +118,10 @@ function PalpitesPage() {
           <div className="h-2 bg-white/10 rounded overflow-hidden">
             <div className="h-full bg-grass transition-all" style={{ width: `${totalEditable ? (filledCount/totalEditable)*100 : 0}%` }} />
           </div>
-        </div>
-      )}
+      </div>
+      <div className="text-xs text-slate-400">
+        Você pode editar cada palpite até o início da partida. Após o início, o jogo é bloqueado automaticamente.
+      </div>
 
       {/* phase filter */}
       <div className="flex flex-wrap gap-2">
@@ -141,12 +139,12 @@ function PalpitesPage() {
           const hasResult = m.status === "finished" && m.home_score != null;
           const started = new Date(m.kickoff_at) <= new Date() || hasResult;
           const exists = existing[m.id];
-          const disabled = locked || started || !!exists;
+          const disabled = started;
           const s = scores[m.id] ?? { h: exists?.h?.toString() ?? "", a: exists?.a?.toString() ?? "" };
-          const status = hasResult ? "result" : exists ? "submitted" : started ? "started" : "open";
-          const StatusIcon = status === "result" ? CheckCircle2 : status === "submitted" ? Lock : status === "started" ? Clock : null;
-          const statusLabel = status === "result" ? "Oficial" : status === "submitted" ? "Enviado" : status === "started" ? "Iniciado" : "Aberto";
-          const statusColor = status === "result" ? "text-grass" : status === "submitted" ? "text-gold" : status === "started" ? "text-victory" : "text-slate-500";
+          const status = hasResult ? "result" : started ? "started" : exists ? "submitted" : "open";
+          const StatusIcon = status === "result" ? CheckCircle2 : status === "started" ? Lock : status === "submitted" ? CheckCircle2 : Clock;
+          const statusLabel = status === "result" ? "Oficial" : status === "started" ? "Iniciado" : status === "submitted" ? "Editável" : "Aberto";
+          const statusColor = status === "result" ? "text-grass" : status === "started" ? "text-victory" : status === "submitted" ? "text-gold" : "text-slate-500";
           return (
             <div key={m.id} className={`bg-white/5 border border-white/10 p-4 ${disabled?"opacity-70":""}`}>
               <div className="flex justify-between items-center mb-3 text-[10px] uppercase tracking-widest text-slate-500">
@@ -177,25 +175,23 @@ function PalpitesPage() {
       </div>
 
       {/* Tournament predictions */}
-      {!locked && (phaseFilter === "all" || phaseFilter === "group") && (
-        <TournamentSection teams={teams} value={tp} existing={existingTp} onChange={(k, v) => setTp((s) => ({ ...s, [k]: v }))} />
+      {(phaseFilter === "all" || phaseFilter === "group") && (
+        <TournamentSection teams={teams} value={tp} existing={existingTp} locked={tournamentLocked} onChange={(k, v) => setTp((s) => ({ ...s, [k]: v }))} />
       )}
 
-      {!locked && (
-        <button onClick={() => setConfirmOpen(true)} disabled={submitting || filledCount === 0}
-          className="fixed bottom-4 left-4 right-4 md:static md:w-full bg-grass text-night font-black uppercase py-4 text-lg tracking-tighter disabled:opacity-50 z-30">
-          Enviar Meus Palpites ({filledCount})
-        </button>
-      )}
+      <button onClick={() => setConfirmOpen(true)} disabled={submitting}
+        className="fixed bottom-4 left-4 right-4 md:static md:w-full bg-grass text-night font-black uppercase py-4 text-lg tracking-tighter disabled:opacity-50 z-30">
+        Salvar Palpites
+      </button>
 
       {confirmOpen && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-night border border-white/10 max-w-md w-full p-6 space-y-4">
-            <h3 className="font-display text-3xl uppercase italic">Confirmar Envio</h3>
-            <p className="text-slate-400 text-sm">Após enviar seus palpites, <b className="text-white">não será possível alterar</b> nenhum dos jogos enviados. Deseja continuar?</p>
+            <h3 className="font-display text-3xl uppercase italic">Salvar Palpites</h3>
+            <p className="text-slate-400 text-sm">Seus palpites serão salvos. Você poderá <b className="text-white">editar cada jogo</b> até o seu início. Deseja continuar?</p>
             <div className="flex gap-2">
               <button onClick={() => setConfirmOpen(false)} className="flex-1 border border-white/20 py-3 font-bold uppercase tracking-widest text-xs">Cancelar</button>
-              <button onClick={doSubmit} disabled={submitting} className="flex-1 bg-grass text-night py-3 font-black uppercase tracking-tighter disabled:opacity-50">{submitting?"Enviando...":"Confirmar"}</button>
+              <button onClick={doSubmit} disabled={submitting} className="flex-1 bg-grass text-night py-3 font-black uppercase tracking-tighter disabled:opacity-50">{submitting?"Salvando...":"Confirmar"}</button>
             </div>
           </div>
         </div>
@@ -204,11 +200,10 @@ function PalpitesPage() {
   );
 }
 
-function TournamentSection({ teams, value, existing, onChange }: { teams: Team[]; value: Record<string,string>; existing: Record<string,string>; onChange: (k:string,v:string)=>void }) {
+function TournamentSection({ teams, value, existing, locked, onChange }: { teams: Team[]; value: Record<string,string>; existing: Record<string,string>; locked: boolean; onChange: (k:string,v:string)=>void }) {
   const groups = Array.from(new Set(teams.map((t) => t.group_letter).filter(Boolean))) as string[];
   function Select({ k }: { k: string }) {
     const v = value[k] ?? existing[k] ?? "";
-    const locked = !!existing[k];
     return (
       <select value={v} disabled={locked} onChange={(e) => onChange(k, e.target.value)} className="bg-white/5 border border-white/10 px-2 py-2 text-sm w-full disabled:opacity-60">
         <option value="">—</option>
@@ -219,6 +214,11 @@ function TournamentSection({ teams, value, existing, onChange }: { teams: Team[]
   return (
     <div className="space-y-6 border-t border-white/10 pt-6">
       <h2 className="font-display text-3xl uppercase italic">Palpites de Classificação</h2>
+      {locked && (
+        <div className="bg-victory/10 border border-victory/30 p-3 text-xs text-slate-300 flex items-center gap-2">
+          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (torneio iniciado).
+        </div>
+      )}
 
       <div>
         <h3 className="text-xs uppercase tracking-widest text-slate-500 mb-3">Classificados dos Grupos</h3>
