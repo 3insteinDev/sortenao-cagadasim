@@ -2,10 +2,18 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { setMatchResult, recalculateAll, toggleUserBlock, updateMatchTeams } from "@/lib/api/admin.functions";
-import { Flag } from "@/components/app/Flag";
+import {
+  setMatchResult,
+  recalculateAll,
+  updateMatchTeams,
+  listAdminUsers,
+  adminUpdateUser,
+  adminDeleteUser,
+  syncResultsNow,
+} from "@/lib/api/admin.functions";
 import { PHASE_LABEL, type Phase } from "@/lib/db/types";
 import { toast } from "sonner";
+import { Loader2, Pencil, Trash2, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
@@ -105,38 +113,200 @@ function ScoreEditor({ m, onSave }: any) {
 
 function UsersTab() {
   const [users, setUsers] = useState<any[]>([]);
-  const toggle = useServerFn(toggleUserBlock);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState<any | null>(null);
+  const list = useServerFn(listAdminUsers);
+  const update = useServerFn(adminUpdateUser);
+  const del = useServerFn(adminDeleteUser);
+
   async function reload() {
-    const { data } = await supabase.from("profiles").select("*").order("total_points", { ascending: false });
-    setUsers(data ?? []);
+    setLoading(true);
+    try {
+      const data = await list();
+      setUsers(data as any[]);
+    } catch (e: any) {
+      toast.error(e.message ?? "Erro ao carregar usuários");
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(() => { reload(); }, []);
+
+  if (loading) return <div className="py-8 text-center text-slate-500 uppercase tracking-widest text-xs flex items-center justify-center gap-2"><Loader2 className="size-4 animate-spin" /> Carregando usuários...</div>;
+
   return (
-    <div className="space-y-2">
-      {users.map((u) => (
-        <div key={u.id} className="bg-white/5 p-3 flex items-center justify-between">
-          <div>
-            <div className="font-bold uppercase text-sm">{u.nickname}</div>
-            <div className="text-[10px] text-slate-500">{u.full_name}</div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="font-display text-lg">{u.total_points} pts</span>
-            <button onClick={async () => { await toggle({ data: { user_id: u.id, blocked: !u.blocked } }); toast.success("Atualizado"); reload(); }}
-              className={`px-3 py-1 text-[10px] uppercase font-bold tracking-widest ${u.blocked?"bg-victory text-white":"bg-white/10"}`}>
-              {u.blocked ? "Bloqueado" : "Bloquear"}
-            </button>
+    <div className="space-y-3">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-collapse">
+          <thead>
+            <tr className="text-[10px] uppercase tracking-widest text-slate-500 border-b border-white/10">
+              <th className="text-left py-2 px-2">Apelido / Nome</th>
+              <th className="text-left py-2 px-2 hidden md:table-cell">Email</th>
+              <th className="text-left py-2 px-2 hidden lg:table-cell">Cadastro</th>
+              <th className="text-right py-2 px-2">Palpites</th>
+              <th className="text-right py-2 px-2">Pontos</th>
+              <th className="text-center py-2 px-2">Status</th>
+              <th className="text-right py-2 px-2">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {users.map((u) => (
+              <tr key={u.id} className="border-b border-white/5 hover:bg-white/5">
+                <td className="py-2 px-2">
+                  <div className="font-bold uppercase text-sm">{u.nickname}</div>
+                  <div className="text-[10px] text-slate-500">{u.full_name}</div>
+                </td>
+                <td className="py-2 px-2 text-xs text-slate-400 hidden md:table-cell">{u.email ?? "—"}</td>
+                <td className="py-2 px-2 text-[10px] text-slate-500 hidden lg:table-cell">{u.auth_created_at ? new Date(u.auth_created_at).toLocaleDateString("pt-BR") : "—"}</td>
+                <td className="py-2 px-2 text-right font-display text-lg">{u.predictions_count}</td>
+                <td className="py-2 px-2 text-right font-display text-lg">{u.total_points}</td>
+                <td className="py-2 px-2 text-center">
+                  <span className={`px-2 py-0.5 text-[10px] uppercase font-bold tracking-widest ${u.blocked ? "bg-victory text-white" : "bg-grass/20 text-grass"}`}>
+                    {u.blocked ? "Inativo" : "Ativo"}
+                  </span>
+                </td>
+                <td className="py-2 px-2">
+                  <div className="flex justify-end gap-1">
+                    <button onClick={() => setEditing(u)} title="Editar" className="p-2 hover:bg-white/10"><Pencil className="size-4" /></button>
+                    <button onClick={() => setDeleting(u)} title="Excluir" className="p-2 hover:bg-victory/30 text-victory"><Trash2 className="size-4" /></button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {editing && (
+        <EditUserModal user={editing} onClose={() => setEditing(null)} onSave={async (patch) => {
+          try {
+            await update({ data: { user_id: editing.id, ...patch } });
+            toast.success("Usuário atualizado");
+            setEditing(null);
+            reload();
+          } catch (e: any) {
+            toast.error(e.message ?? "Erro ao atualizar");
+          }
+        }} />
+      )}
+
+      {deleting && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+          <div className="bg-night border border-victory/30 max-w-md w-full p-6 space-y-4">
+            <h3 className="font-display text-3xl uppercase italic text-victory">Excluir Usuário</h3>
+            <p className="text-slate-300 text-sm">
+              Tem certeza que deseja excluir <b className="text-white">{deleting.nickname}</b>?
+            </p>
+            <p className="text-slate-400 text-xs">
+              Esta ação <b>não pode ser desfeita</b>. Todos os palpites, palpites de classificação, conquistas e dados vinculados a este usuário serão removidos permanentemente.
+            </p>
+            <div className="flex gap-2">
+              <button onClick={() => setDeleting(null)} className="flex-1 border border-white/20 py-3 font-bold uppercase tracking-widest text-xs">Cancelar</button>
+              <button onClick={async () => {
+                try {
+                  await del({ data: { user_id: deleting.id } });
+                  toast.success("Usuário excluído");
+                  setDeleting(null);
+                  reload();
+                } catch (e: any) {
+                  toast.error(e.message ?? "Erro ao excluir");
+                }
+              }} className="flex-1 bg-victory text-white py-3 font-black uppercase tracking-tighter">Excluir</button>
+            </div>
           </div>
         </div>
-      ))}
+      )}
+    </div>
+  );
+}
+
+function EditUserModal({ user, onClose, onSave }: { user: any; onClose: () => void; onSave: (patch: any) => Promise<void> }) {
+  const [form, setForm] = useState({
+    full_name: user.full_name ?? "",
+    nickname: user.nickname ?? "",
+    email: user.email ?? "",
+    password: "",
+    blocked: !!user.blocked,
+  });
+  const [saving, setSaving] = useState(false);
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+      <div className="bg-night border border-white/10 max-w-md w-full p-6 space-y-4">
+        <h3 className="font-display text-3xl uppercase italic">Editar Usuário</h3>
+        <div className="space-y-3">
+          <Field label="Nome completo">
+            <input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm" />
+          </Field>
+          <Field label="Apelido">
+            <input value={form.nickname} onChange={(e) => setForm({ ...form, nickname: e.target.value })} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm" />
+          </Field>
+          <Field label="Email">
+            <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm" />
+          </Field>
+          <Field label="Nova senha (opcional, mín. 6 caracteres)">
+            <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full bg-white/5 border border-white/10 px-3 py-2 text-sm" placeholder="Deixe em branco para manter" />
+          </Field>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={form.blocked} onChange={(e) => setForm({ ...form, blocked: e.target.checked })} />
+            <span>Conta bloqueada (inativa)</span>
+          </label>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={onClose} className="flex-1 border border-white/20 py-3 font-bold uppercase tracking-widest text-xs">Cancelar</button>
+          <button disabled={saving} onClick={async () => {
+            setSaving(true);
+            const patch: any = {
+              full_name: form.full_name,
+              nickname: form.nickname,
+              blocked: form.blocked,
+            };
+            if (form.email && form.email !== user.email) patch.email = form.email;
+            if (form.password) patch.password = form.password;
+            try { await onSave(patch); } finally { setSaving(false); }
+          }} className="flex-1 bg-grass text-night py-3 font-black uppercase tracking-tighter disabled:opacity-50">
+            {saving ? "Salvando..." : "Salvar"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="text-[10px] uppercase tracking-widest text-slate-500 block mb-1">{label}</label>
+      {children}
     </div>
   );
 }
 
 function ActionsTab() {
   const recalc = useServerFn(recalculateAll);
+  const sync = useServerFn(syncResultsNow);
   const [busy, setBusy] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   return (
-    <div className="space-y-4 max-w-md">
+    <div className="space-y-6 max-w-md">
+      <div className="space-y-2">
+        <button onClick={async () => {
+          setSyncing(true);
+          try {
+            const r = await sync({});
+            toast.success(`Sincronizado: ${(r as any).updated} jogos atualizados de ${(r as any).fetched} encontrados.`);
+          } catch (e: any) {
+            toast.error(e.message ?? "Erro na sincronização");
+          } finally { setSyncing(false); }
+        }} disabled={syncing} className="w-full bg-white/10 border border-white/20 text-white font-black uppercase py-4 tracking-tighter disabled:opacity-50 inline-flex items-center justify-center gap-2">
+          <RefreshCw className={`size-4 ${syncing ? "animate-spin" : ""}`} />
+          {syncing ? "Sincronizando..." : "Sincronizar Resultados (Football-Data)"}
+        </button>
+        <p className="text-xs text-slate-500 uppercase tracking-widest">
+          Busca os resultados finalizados na Football-Data.org. Jogos marcados como “manual_override” não são sobrescritos.
+        </p>
+      </div>
+
       <button onClick={async () => { setBusy(true); try { const r = await recalc({}); toast.success(`Recalculado para ${r.profiles} usuários`); } catch (e: any) { toast.error(e.message); } finally { setBusy(false); } }}
         disabled={busy} className="w-full bg-grass text-night font-black uppercase py-4 tracking-tighter disabled:opacity-50">
         {busy ? "Recalculando..." : "Recalcular Pontuações"}
