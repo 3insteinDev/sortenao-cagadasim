@@ -59,7 +59,7 @@ function Dashboard() {
               <span className="text-slate-500 font-display text-xl">VS</span>
               <Flag flag={m.away?.flag} sigla={m.away?.sigla ?? m.away_placeholder} />
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500">{new Date(m.kickoff_at).toLocaleDateString("pt-BR")}</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-500">{new Date(m.kickoff_at).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
           </div>
         ))}
       </Section>

@@ -148,7 +148,10 @@ function PalpitesPage() {
           return (
             <div key={m.id} className={`bg-white/5 border border-white/10 p-4 ${disabled?"opacity-70":""}`}>
               <div className="flex justify-between items-center mb-3 text-[10px] uppercase tracking-widest text-slate-500">
-                <span>{PHASE_LABEL[m.phase as Phase]}{m.group_letter ? ` · Grupo ${m.group_letter}` : ""}{m.round ? ` · Rodada ${m.round}` : ""}</span>
+                <span>
+                  {PHASE_LABEL[m.phase as Phase]}{m.group_letter ? ` · Grupo ${m.group_letter}` : ""}{m.round ? ` · Rodada ${m.round}` : ""}
+                  {m.kickoff_at ? ` · ${new Date(m.kickoff_at).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}` : ""}
+                </span>
                 <span className={`flex items-center gap-1 ${statusColor}`}>
                   {StatusIcon && <StatusIcon className="size-3" />}{statusLabel}
                 </span>
