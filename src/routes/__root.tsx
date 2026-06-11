@@ -122,6 +122,10 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
+    // Injeta a fonte "Twemoji Mozilla" para renderizar bandeiras no Windows/Chrome
+    import("country-flag-emoji-polyfill").then(({ polyfillCountryFlagEmojis }) =>
+      polyfillCountryFlagEmojis(),
+    );
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
