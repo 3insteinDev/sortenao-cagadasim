@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_authenticated/ranking")({ component: Ran
 function RankingPage() {
   const [rows, setRows] = useState<any[]>([]);
   useEffect(() => {
-    supabase.from("profiles").select("id,nickname,total_points,total_hits,prev_rank").order("total_points",{ascending:false}).then(({data}) => setRows(data ?? []));
+    supabase.rpc("get_leaderboard").then(({ data }) => setRows(data ?? []));
   }, []);
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">

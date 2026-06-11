@@ -20,7 +20,7 @@ function Dashboard() {
         supabase.from("achievements").select("*").eq("user_id", uid),
         supabase.from("matches").select("*, home:home_team_id(name,sigla,flag), away:away_team_id(name,sigla,flag)").gt("kickoff_at", new Date().toISOString()).order("kickoff_at").limit(5),
         supabase.from("predictions").select("points,match:match_id(home_score,away_score,phase,home:home_team_id(sigla,flag),away:away_team_id(sigla,flag))").eq("user_id", uid).order("submitted_at", { ascending: false }).limit(5),
-        supabase.from("profiles").select("id,total_points").order("total_points",{ ascending:false }),
+        supabase.rpc("get_leaderboard"),
       ]);
       const rank = (ranking.data ?? []).findIndex((p: any) => p.id === uid) + 1;
       setData({ profile: profile.data, achievements: achievements.data ?? [], upcoming: upcoming.data ?? [], lastResults: lastResults.data ?? [], rank });
