@@ -66,6 +66,26 @@ function useCountdown(target: string) {
   return t;
 }
 
+function CopyPixButton() {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText("19983972249");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="w-full flex items-center justify-center gap-2 bg-grass hover:brightness-110 text-night font-black uppercase py-4 text-lg tracking-tighter transition-all active:scale-95 rounded-lg"
+    >
+      {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+      {copied ? "Chave Copiada!" : "Copiar Chave Pix"}
+    </button>
+  );
+}
+
 function Landing() {
   const { data } = useSuspenseQuery(landingQuery);
   const cd = useCountdown(data.cupStart);
