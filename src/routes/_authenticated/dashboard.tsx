@@ -54,10 +54,10 @@ function Dashboard() {
       <Section title="Próximos Jogos">
         {data.upcoming.length === 0 ? <Empty>Nenhum jogo agendado</Empty> : data.upcoming.map((m: any) => (
           <div key={m.id} className="bg-white/5 border-l-4 border-grass p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-sm">
-              <Flag flag={m.home?.flag} sigla={m.home?.sigla ?? m.home_placeholder} />
-              <span className="text-slate-500 font-display text-xl">VS</span>
-              <Flag flag={m.away?.flag} sigla={m.away?.sigla ?? m.away_placeholder} />
+            <div className="flex items-center gap-3 text-sm min-w-0 flex-1">
+              <Flag showName flag={m.home?.flag} name={m.home?.name ?? m.home_placeholder} sigla={m.home?.sigla ?? m.home_placeholder} />
+              <span className="text-slate-500 font-display text-xl shrink-0">VS</span>
+              <Flag showName flag={m.away?.flag} name={m.away?.name ?? m.away_placeholder} sigla={m.away?.sigla ?? m.away_placeholder} />
             </div>
             <span className="text-[10px] uppercase tracking-widest text-slate-500">{new Date(m.kickoff_at).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
           </div>
@@ -68,9 +68,9 @@ function Dashboard() {
         {data.lastResults.length === 0 ? <Empty>Sem resultados ainda</Empty> : data.lastResults.map((r: any, i: number) => (
           <div key={i} className="bg-white/5 p-4 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm">
-              <Flag flag={r.match?.home?.flag} sigla={r.match?.home?.sigla} />
+              <Flag flag={r.match?.home?.flag} name={r.match?.home?.name} sigla={r.match?.home?.sigla} />
               <span className="font-display text-xl">{r.match?.home_score ?? "-"} : {r.match?.away_score ?? "-"}</span>
-              <Flag flag={r.match?.away?.flag} sigla={r.match?.away?.sigla} />
+              <Flag flag={r.match?.away?.flag} name={r.match?.away?.name} sigla={r.match?.away?.sigla} />
             </div>
             <span className={`font-display text-xl ${r.points > 0 ? "text-grass" : "text-slate-600"}`}>+{r.points}</span>
           </div>
