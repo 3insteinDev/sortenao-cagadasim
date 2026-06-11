@@ -62,12 +62,15 @@ export type Database = {
           away_score: number | null
           away_team_id: string | null
           created_at: string
+          external_id: number | null
           group_letter: string | null
           home_placeholder: string | null
           home_score: number | null
           home_team_id: string | null
           id: string
           kickoff_at: string
+          last_synced_at: string | null
+          manual_override: boolean
           match_code: string | null
           phase: Database["public"]["Enums"]["match_phase"]
           round: number | null
@@ -78,12 +81,15 @@ export type Database = {
           away_score?: number | null
           away_team_id?: string | null
           created_at?: string
+          external_id?: number | null
           group_letter?: string | null
           home_placeholder?: string | null
           home_score?: number | null
           home_team_id?: string | null
           id?: string
           kickoff_at: string
+          last_synced_at?: string | null
+          manual_override?: boolean
           match_code?: string | null
           phase: Database["public"]["Enums"]["match_phase"]
           round?: number | null
@@ -94,12 +100,15 @@ export type Database = {
           away_score?: number | null
           away_team_id?: string | null
           created_at?: string
+          external_id?: number | null
           group_letter?: string | null
           home_placeholder?: string | null
           home_score?: number | null
           home_team_id?: string | null
           id?: string
           kickoff_at?: string
+          last_synced_at?: string | null
+          manual_override?: boolean
           match_code?: string | null
           phase?: Database["public"]["Enums"]["match_phase"]
           round?: number | null
