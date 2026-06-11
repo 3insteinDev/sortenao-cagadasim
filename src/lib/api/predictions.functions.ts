@@ -24,12 +24,6 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const nowIso = new Date().toISOString();
 
-    // Check profile not already submitted
-    const { data: prof } = await supabase.from("profiles").select("predictions_submitted_at").eq("id", userId).maybeSingle();
-    if (prof?.predictions_submitted_at) {
-      throw new Error("Você já enviou seus palpites. Não é possível alterar.");
-    }
-
     // Filter matches not yet kicked off
     const matchIds = data.matches.map((m) => m.match_id);
     let validIds = new Set<string>(matchIds);
@@ -54,7 +48,15 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       if (error) throw error;
     }
 
-    const tpRows = data.tournament.map((t) => ({
+    // Tournament predictions: only allowed while no match has started yet
+    const { data: firstStarted } = await supabase
+      .from("matches")
+      .select("id")
+      .lte("kickoff_at", nowIso)
+      .limit(1);
+    const tournamentLocked = (firstStarted ?? []).length > 0;
+
+    const tpRows = tournamentLocked ? [] : data.tournament.map((t) => ({
       user_id: userId,
       pred_type: t.pred_type,
       group_letter: t.group_letter ?? null,
@@ -66,7 +68,12 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       if (error) throw error;
     }
 
-    await supabase.from("profiles").update({ predictions_submitted_at: nowIso }).eq("id", userId);
+    // Mark first-time submission timestamp without locking future edits
+    await supabase
+      .from("profiles")
+      .update({ predictions_submitted_at: nowIso })
+      .eq("id", userId)
+      .is("predictions_submitted_at", null);
 
     // First-prediction achievement
     await supabase.from("achievements").upsert(
