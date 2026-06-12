@@ -56,6 +56,44 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_entries: {
+        Row: {
+          avatar_url: string | null
+          id: string
+          nickname: string
+          prev_rank: number | null
+          total_hits: number
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          id: string
+          nickname: string
+          prev_rank?: number | null
+          total_hits?: number
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          id?: string
+          nickname?: string
+          prev_rank?: number | null
+          total_hits?: number
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_entries_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       matches: {
         Row: {
           away_placeholder: string | null
