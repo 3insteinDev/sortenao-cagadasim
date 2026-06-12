@@ -68,18 +68,22 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       if (error) throw error;
     }
 
-    // Mark first-time submission timestamp without locking future edits
-    await supabase
+    // System-managed fields must never be writable directly from the browser.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .update({ predictions_submitted_at: nowIso })
       .eq("id", userId)
       .is("predictions_submitted_at", null);
+    if (profileError) throw profileError;
 
     // First-prediction achievement
-    await supabase.from("achievements").upsert(
+    const { error: achievementError } = await supabaseAdmin.from("achievements").upsert(
       { user_id: userId, code: "first_prediction", title: "Primeiro Palpite", icon: "🏅" },
       { onConflict: "user_id,code" },
     );
+    if (achievementError) throw achievementError;
 
     return { ok: true, count: matchRows.length };
   });
