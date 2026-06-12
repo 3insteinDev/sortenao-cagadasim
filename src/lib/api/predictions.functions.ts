@@ -8,7 +8,17 @@ const matchPredSchema = z.object({
   away_score: z.number().int().min(0).max(50),
 });
 const tpSchema = z.object({
-  pred_type: z.enum(["group_1st","group_2nd","r16","qf","sf","finalist","champion","runner_up","third"]),
+  pred_type: z.enum([
+    "group_1st",
+    "group_2nd",
+    "r16",
+    "qf",
+    "sf",
+    "finalist",
+    "champion",
+    "runner_up",
+    "third",
+  ]),
   group_letter: z.string().nullable().optional(),
   team_id: z.string().uuid(),
 });
@@ -41,10 +51,18 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
 
     const matchRows = data.matches
       .filter((m) => validIds.has(m.match_id))
-      .map((m) => ({ user_id: userId, match_id: m.match_id, home_score: m.home_score, away_score: m.away_score, submitted_at: nowIso }));
+      .map((m) => ({
+        user_id: userId,
+        match_id: m.match_id,
+        home_score: m.home_score,
+        away_score: m.away_score,
+        submitted_at: nowIso,
+      }));
 
     if (matchRows.length) {
-      const { error } = await supabase.from("predictions").upsert(matchRows, { onConflict: "user_id,match_id" });
+      const { error } = await supabase
+        .from("predictions")
+        .upsert(matchRows, { onConflict: "user_id,match_id" });
       if (error) throw error;
     }
 
@@ -56,30 +74,40 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       .limit(1);
     const tournamentLocked = (firstStarted ?? []).length > 0;
 
-    const tpRows = tournamentLocked ? [] : data.tournament.map((t) => ({
-      user_id: userId,
-      pred_type: t.pred_type,
-      group_letter: t.group_letter ?? null,
-      team_id: t.team_id,
-      submitted_at: nowIso,
-    }));
+    const tpRows = tournamentLocked
+      ? []
+      : data.tournament.map((t) => ({
+          user_id: userId,
+          pred_type: t.pred_type,
+          group_letter: t.group_letter ?? null,
+          team_id: t.team_id,
+          submitted_at: nowIso,
+        }));
     if (tpRows.length) {
-      const { error } = await supabase.from("tournament_predictions").upsert(tpRows, { onConflict: "user_id,pred_type,group_letter" });
+      const { error } = await supabase
+        .from("tournament_predictions")
+        .upsert(tpRows, { onConflict: "user_id,pred_type,group_letter" });
       if (error) throw error;
     }
 
-    // Mark first-time submission timestamp without locking future edits
-    await supabase
+    // System-managed fields must never be writable directly from the browser.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .update({ predictions_submitted_at: nowIso })
       .eq("id", userId)
       .is("predictions_submitted_at", null);
+    if (profileError) throw profileError;
 
     // First-prediction achievement
-    await supabase.from("achievements").upsert(
-      { user_id: userId, code: "first_prediction", title: "Primeiro Palpite", icon: "🏅" },
-      { onConflict: "user_id,code" },
-    );
+    const { error: achievementError } = await supabaseAdmin
+      .from("achievements")
+      .upsert(
+        { user_id: userId, code: "first_prediction", title: "Primeiro Palpite", icon: "🏅" },
+        { onConflict: "user_id,code" },
+      );
+    if (achievementError) throw achievementError;
 
     return { ok: true, count: matchRows.length };
   });

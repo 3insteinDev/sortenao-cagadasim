@@ -18,7 +18,6 @@ import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedPalpitesRouteImport } from './routes/_authenticated/palpites'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as ApiPublicHooksSyncResultsRouteImport } from './routes/api/public/hooks/sync-results'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -64,12 +63,6 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicHooksSyncResultsRoute =
-  ApiPublicHooksSyncResultsRouteImport.update({
-    id: '/api/public/hooks/sync-results',
-    path: '/api/public/hooks/sync-results',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/palpites': typeof AuthenticatedPalpitesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/ranking': typeof AuthenticatedRankingRoute
-  '/api/public/hooks/sync-results': typeof ApiPublicHooksSyncResultsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,7 +83,6 @@ export interface FileRoutesByTo {
   '/palpites': typeof AuthenticatedPalpitesRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/ranking': typeof AuthenticatedRankingRoute
-  '/api/public/hooks/sync-results': typeof ApiPublicHooksSyncResultsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,7 +95,6 @@ export interface FileRoutesById {
   '/_authenticated/palpites': typeof AuthenticatedPalpitesRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/ranking': typeof AuthenticatedRankingRoute
-  '/api/public/hooks/sync-results': typeof ApiPublicHooksSyncResultsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,7 +107,6 @@ export interface FileRouteTypes {
     | '/palpites'
     | '/perfil'
     | '/ranking'
-    | '/api/public/hooks/sync-results'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,7 +117,6 @@ export interface FileRouteTypes {
     | '/palpites'
     | '/perfil'
     | '/ranking'
-    | '/api/public/hooks/sync-results'
   id:
     | '__root__'
     | '/'
@@ -140,7 +128,6 @@ export interface FileRouteTypes {
     | '/_authenticated/palpites'
     | '/_authenticated/perfil'
     | '/_authenticated/ranking'
-    | '/api/public/hooks/sync-results'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -148,7 +135,6 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ApiPublicHooksSyncResultsRoute: typeof ApiPublicHooksSyncResultsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -216,13 +202,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/hooks/sync-results': {
-      id: '/api/public/hooks/sync-results'
-      path: '/api/public/hooks/sync-results'
-      fullPath: '/api/public/hooks/sync-results'
-      preLoaderRoute: typeof ApiPublicHooksSyncResultsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -250,7 +229,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  ApiPublicHooksSyncResultsRoute: ApiPublicHooksSyncResultsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
