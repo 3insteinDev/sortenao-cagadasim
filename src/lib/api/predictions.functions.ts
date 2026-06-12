@@ -33,6 +33,7 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const nowIso = new Date().toISOString();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Filter matches not yet kicked off
     const matchIds = data.matches.map((m) => m.match_id);
@@ -60,7 +61,7 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       }));
 
     if (matchRows.length) {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("predictions")
         .upsert(matchRows, { onConflict: "user_id,match_id" });
       if (error) throw error;
@@ -84,15 +85,13 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
           submitted_at: nowIso,
         }));
     if (tpRows.length) {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from("tournament_predictions")
         .upsert(tpRows, { onConflict: "user_id,pred_type,group_letter" });
       if (error) throw error;
     }
 
     // System-managed fields must never be writable directly from the browser.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
     const { error: profileError } = await supabaseAdmin
       .from("profiles")
       .update({ predictions_submitted_at: nowIso })
