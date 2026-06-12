@@ -307,7 +307,7 @@ function ActionsTab() {
         </p>
       </div>
 
-      <button onClick={async () => { setBusy(true); try { const r = await recalc({}); toast.success(`Recalculado para ${r.profiles} usuários`); } catch (e: any) { toast.error(e.message); } finally { setBusy(false); } }}
+      <button onClick={async () => { setBusy(true); try { const r = await recalc({}); toast.success(`Recalculado para ${r.profiles} usuários`); window.location.reload(); } catch (e: any) { toast.error(e.message); } finally { setBusy(false); } }}
         disabled={busy} className="w-full bg-grass text-night font-black uppercase py-4 tracking-tighter disabled:opacity-50">
         {busy ? "Recalculando..." : "Recalcular Pontuações"}
       </button>
