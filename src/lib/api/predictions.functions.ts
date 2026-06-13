@@ -27,6 +27,96 @@ const submitSchema = z.object({
   tournament: z.array(tpSchema),
 });
 
+const matchParticipantsSchema = z.object({ match_id: z.string().uuid() });
+
+function pointsForMatch(
+  phase: string,
+  prediction: { home_score: number; away_score: number },
+  result: { home_score: number; away_score: number },
+) {
+  if (prediction.home_score === result.home_score && prediction.away_score === result.away_score) {
+    return phase === "group" ? 10 : 15;
+  }
+  const predictedOutcome = Math.sign(prediction.home_score - prediction.away_score);
+  const currentOutcome = Math.sign(result.home_score - result.away_score);
+  const oneScoreIsExact =
+    prediction.home_score === result.home_score || prediction.away_score === result.away_score;
+
+  if (phase === "group") {
+    if (predictedOutcome === currentOutcome) return oneScoreIsExact ? 7 : 5;
+    return oneScoreIsExact ? 2 : 0;
+  }
+  if (predictedOutcome === currentOutcome && currentOutcome !== 0) return 8;
+  return oneScoreIsExact ? 3 : 0;
+}
+
+export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => matchParticipantsSchema.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: match, error: matchError } = await supabaseAdmin
+      .from("matches")
+      .select(
+        "id,phase,status,kickoff_at,home_score,away_score,home_placeholder,away_placeholder,home:home_team_id(name,sigla,flag),away:away_team_id(name,sigla,flag)",
+      )
+      .eq("id", data.match_id)
+      .single();
+
+    if (matchError || !match) throw new Error("Jogo não encontrado.");
+    if (new Date(match.kickoff_at) > new Date() && match.status === "scheduled") {
+      throw new Error("Os palpites serão revelados somente após o início do jogo.");
+    }
+
+    const [{ data: participants, error: participantsError }, { data: predictions, error: predictionsError }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("leaderboard_entries")
+          .select("id,nickname,avatar_url")
+          .order("nickname"),
+        supabaseAdmin
+          .from("predictions")
+          .select("user_id,home_score,away_score,points")
+          .eq("match_id", data.match_id),
+      ]);
+    if (participantsError) throw participantsError;
+    if (predictionsError) throw predictionsError;
+
+    const predictionByUser = new Map((predictions ?? []).map((prediction) => [prediction.user_id, prediction]));
+    const hasCurrentScore = match.home_score != null && match.away_score != null;
+    const rows = (participants ?? []).map((participant) => {
+      const prediction = predictionByUser.get(participant.id);
+      const livePoints =
+        prediction && hasCurrentScore
+          ? pointsForMatch(
+              match.phase,
+              prediction,
+              { home_score: match.home_score ?? 0, away_score: match.away_score ?? 0 },
+            )
+          : 0;
+      return {
+        id: participant.id,
+        nickname: participant.nickname,
+        avatar_url: participant.avatar_url,
+        prediction: prediction
+          ? { home_score: prediction.home_score, away_score: prediction.away_score }
+          : null,
+        points: match.status === "finished" ? prediction?.points ?? livePoints : livePoints,
+        is_current_user: participant.id === context.userId,
+      };
+    });
+
+    rows.sort((a, b) => b.points - a.points || a.nickname.localeCompare(b.nickname, "pt-BR"));
+    return {
+      match: {
+        ...match,
+        home: Array.isArray(match.home) ? match.home[0] ?? null : match.home,
+        away: Array.isArray(match.away) ? match.away[0] ?? null : match.away,
+      },
+      participants: rows,
+    };
+  });
+
 export const submitAllPredictions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => submitSchema.parse(d))
