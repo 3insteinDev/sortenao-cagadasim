@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { submitAllPredictions } from "@/lib/api/predictions.functions";
 import { Flag } from "@/components/app/Flag";
+import { MatchParticipantPredictions } from "@/components/app/MatchParticipantPredictions";
 import { PHASE_LABEL, PHASE_ORDER, type Phase } from "@/lib/db/types";
 import { toast } from "sonner";
 import { Lock, Clock, CheckCircle2, Dices } from "lucide-react";
@@ -196,6 +197,9 @@ function PalpitesPage() {
               {hasResult && (
                 <div className="mt-2 text-center text-xs text-slate-400">Resultado oficial: {m.home_score} × {m.away_score}</div>
               )}
+              <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
+                <MatchParticipantPredictions match={m} />
+              </div>
             </div>
           );
         })}
