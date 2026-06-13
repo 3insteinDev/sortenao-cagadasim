@@ -26,10 +26,18 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<ParticipantData | null>(null);
-  const hasStarted = match.status !== "scheduled" || new Date(match.kickoff_at) <= new Date();
+  const isFinished = match.status === "finished";
+
+  function pointsColor(points: number) {
+    if (points === 10 || points === 15) return "text-gold";
+    if (points === 7 || points === 8) return "text-grass";
+    if (points === 5) return "text-foreground";
+    if (points === 2 || points === 3) return "text-slate-400";
+    return "text-slate-600";
+  }
 
   async function handleOpen() {
-    if (!hasStarted) return;
+    if (!isFinished) return;
     setOpen(true);
     if (data) return;
     setLoading(true);
@@ -49,24 +57,21 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
         type="button"
         variant="outline"
         size="sm"
-        disabled={!hasStarted}
+        disabled={!isFinished}
         onClick={handleOpen}
         className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/10"
       >
-        {hasStarted ? <Eye /> : <Lock />}
-        {hasStarted ? "Ver palpites" : "Palpites fechados"}
+        {isFinished ? <Eye /> : <Lock />}
+        {isFinished ? "Ver palpites" : "Disponível após o fim"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden border-white/10 bg-night p-0 text-foreground sm:rounded-none">
-          <DialogHeader className="border-b border-white/10 p-5 pr-12 text-left">
-            <DialogTitle className="font-display text-3xl uppercase italic">
+        <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-2xl flex-col overflow-hidden border-white/10 bg-night p-0 text-foreground sm:max-h-[85vh] sm:rounded-none">
+          <DialogHeader className="shrink-0 border-b border-white/10 p-4 pr-12 text-left sm:p-5 sm:pr-12">
+            <DialogTitle className="font-display text-2xl uppercase italic sm:text-3xl">
               Palpites da partida
             </DialogTitle>
-            <DialogDescription>
-              Palpites revelados após o início · pontuação{" "}
-              {data?.match.status === "finished" ? "final" : "parcial"}
-            </DialogDescription>
+            <DialogDescription>Palpites revelados após o fim · pontuação final</DialogDescription>
           </DialogHeader>
 
           {loading && (
@@ -80,14 +85,14 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
             </p>
           )}
           {data && (
-            <div className="overflow-y-auto">
-              <div className="sticky top-0 z-10 flex items-center justify-center gap-3 border-b border-white/10 bg-night p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="sticky top-0 z-10 flex items-center justify-center gap-2 border-b border-white/10 bg-night p-3 sm:gap-3 sm:p-4">
                 <Flag
                   flag={data.match.home?.flag}
                   name={data.match.home?.name ?? data.match.home_placeholder}
                   sigla={data.match.home?.sigla ?? data.match.home_placeholder}
                 />
-                <span className="font-display text-3xl">
+                <span className="whitespace-nowrap font-display text-2xl sm:text-3xl">
                   {data.match.home_score ?? "–"} × {data.match.away_score ?? "–"}
                 </span>
                 <Flag
@@ -96,11 +101,11 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
                   sigla={data.match.away?.sigla ?? data.match.away_placeholder}
                 />
               </div>
-              <div className="divide-y divide-white/5 px-4 pb-4">
+              <div className="divide-y divide-white/5 px-3 pb-4 sm:px-4">
                 {data.participants.map((participant) => (
                   <div
                     key={participant.id}
-                    className={`grid grid-cols-[1fr_auto_auto] items-center gap-3 py-3 ${participant.is_current_user ? "text-gold" : ""}`}
+                    className={`grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 py-3 sm:gap-3 ${participant.is_current_user ? "text-gold" : ""}`}
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold uppercase">
@@ -108,13 +113,13 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
                         {participant.is_current_user ? " · Você" : ""}
                       </p>
                     </div>
-                    <span className="min-w-16 text-center font-display text-2xl text-foreground">
+                    <span className="min-w-14 text-center font-display text-xl text-foreground sm:min-w-16 sm:text-2xl">
                       {participant.prediction
                         ? `${participant.prediction.home_score} × ${participant.prediction.away_score}`
                         : "—"}
                     </span>
                     <span
-                      className={`flex min-w-14 items-center justify-end gap-1 font-display text-xl ${participant.points > 0 ? "text-grass" : "text-slate-600"}`}
+                      className={`flex min-w-12 items-center justify-end gap-1 font-display text-lg sm:min-w-14 sm:text-xl ${pointsColor(participant.points)}`}
                     >
                       <Target className="size-3" /> +{participant.points}
                     </span>
