@@ -68,31 +68,31 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
       throw new Error("Os palpites serão revelados somente após o início do jogo.");
     }
 
-    const [{ data: participants, error: participantsError }, { data: predictions, error: predictionsError }] =
-      await Promise.all([
-        supabaseAdmin
-          .from("leaderboard_entries")
-          .select("id,nickname,avatar_url")
-          .order("nickname"),
-        supabaseAdmin
-          .from("predictions")
-          .select("user_id,home_score,away_score,points")
-          .eq("match_id", data.match_id),
-      ]);
+    const [
+      { data: participants, error: participantsError },
+      { data: predictions, error: predictionsError },
+    ] = await Promise.all([
+      supabaseAdmin.from("leaderboard_entries").select("id,nickname,avatar_url").order("nickname"),
+      supabaseAdmin
+        .from("predictions")
+        .select("user_id,home_score,away_score,points")
+        .eq("match_id", data.match_id),
+    ]);
     if (participantsError) throw participantsError;
     if (predictionsError) throw predictionsError;
 
-    const predictionByUser = new Map((predictions ?? []).map((prediction) => [prediction.user_id, prediction]));
+    const predictionByUser = new Map(
+      (predictions ?? []).map((prediction) => [prediction.user_id, prediction]),
+    );
     const hasCurrentScore = match.home_score != null && match.away_score != null;
     const rows = (participants ?? []).map((participant) => {
       const prediction = predictionByUser.get(participant.id);
       const livePoints =
         prediction && hasCurrentScore
-          ? pointsForMatch(
-              match.phase,
-              prediction,
-              { home_score: match.home_score ?? 0, away_score: match.away_score ?? 0 },
-            )
+          ? pointsForMatch(match.phase, prediction, {
+              home_score: match.home_score ?? 0,
+              away_score: match.away_score ?? 0,
+            })
           : 0;
       return {
         id: participant.id,
@@ -101,7 +101,7 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
         prediction: prediction
           ? { home_score: prediction.home_score, away_score: prediction.away_score }
           : null,
-        points: match.status === "finished" ? prediction?.points ?? livePoints : livePoints,
+        points: match.status === "finished" ? (prediction?.points ?? livePoints) : livePoints,
         is_current_user: participant.id === context.userId,
       };
     });
@@ -110,8 +110,8 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
     return {
       match: {
         ...match,
-        home: Array.isArray(match.home) ? match.home[0] ?? null : match.home,
-        away: Array.isArray(match.away) ? match.away[0] ?? null : match.away,
+        home: Array.isArray(match.home) ? (match.home[0] ?? null) : match.home,
+        away: Array.isArray(match.away) ? (match.away[0] ?? null) : match.away,
       },
       participants: rows,
     };

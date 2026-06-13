@@ -60,9 +60,12 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden border-white/10 bg-night p-0 text-foreground sm:rounded-none">
           <DialogHeader className="border-b border-white/10 p-5 pr-12 text-left">
-            <DialogTitle className="font-display text-3xl uppercase italic">Palpites da partida</DialogTitle>
+            <DialogTitle className="font-display text-3xl uppercase italic">
+              Palpites da partida
+            </DialogTitle>
             <DialogDescription>
-              Palpites revelados após o início · pontuação {data?.match.status === "finished" ? "final" : "parcial"}
+              Palpites revelados após o início · pontuação{" "}
+              {data?.match.status === "finished" ? "final" : "parcial"}
             </DialogDescription>
           </DialogHeader>
 
@@ -71,15 +74,27 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
               <Loader2 className="animate-spin" /> Carregando participantes...
             </div>
           )}
-          {error && <p role="alert" className="p-8 text-center text-sm text-victory">{error}</p>}
+          {error && (
+            <p role="alert" className="p-8 text-center text-sm text-victory">
+              {error}
+            </p>
+          )}
           {data && (
             <div className="overflow-y-auto">
               <div className="sticky top-0 z-10 flex items-center justify-center gap-3 border-b border-white/10 bg-night p-4">
-                <Flag flag={data.match.home?.flag} name={data.match.home?.name ?? data.match.home_placeholder} sigla={data.match.home?.sigla ?? data.match.home_placeholder} />
+                <Flag
+                  flag={data.match.home?.flag}
+                  name={data.match.home?.name ?? data.match.home_placeholder}
+                  sigla={data.match.home?.sigla ?? data.match.home_placeholder}
+                />
                 <span className="font-display text-3xl">
                   {data.match.home_score ?? "–"} × {data.match.away_score ?? "–"}
                 </span>
-                <Flag flag={data.match.away?.flag} name={data.match.away?.name ?? data.match.away_placeholder} sigla={data.match.away?.sigla ?? data.match.away_placeholder} />
+                <Flag
+                  flag={data.match.away?.flag}
+                  name={data.match.away?.name ?? data.match.away_placeholder}
+                  sigla={data.match.away?.sigla ?? data.match.away_placeholder}
+                />
               </div>
               <div className="divide-y divide-white/5 px-4 pb-4">
                 {data.participants.map((participant) => (
@@ -89,7 +104,8 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold uppercase">
-                        {participant.nickname}{participant.is_current_user ? " · Você" : ""}
+                        {participant.nickname}
+                        {participant.is_current_user ? " · Você" : ""}
                       </p>
                     </div>
                     <span className="min-w-16 text-center font-display text-2xl text-foreground">
@@ -97,7 +113,9 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
                         ? `${participant.prediction.home_score} × ${participant.prediction.away_score}`
                         : "—"}
                     </span>
-                    <span className={`flex min-w-14 items-center justify-end gap-1 font-display text-xl ${participant.points > 0 ? "text-grass" : "text-slate-600"}`}>
+                    <span
+                      className={`flex min-w-14 items-center justify-end gap-1 font-display text-xl ${participant.points > 0 ? "text-grass" : "text-slate-600"}`}
+                    >
                       <Target className="size-3" /> +{participant.points}
                     </span>
                   </div>
