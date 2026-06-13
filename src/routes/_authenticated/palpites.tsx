@@ -305,9 +305,11 @@ function PalpitesPage() {
                   Resultado oficial: {m.home_score} × {m.away_score}
                 </div>
               )}
-              <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
-                <MatchParticipantPredictions match={m} />
-              </div>
+              {m.status === "finished" && (
+                <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
+                  <MatchParticipantPredictions match={m} />
+                </div>
+              )}
             </div>
           );
         })}

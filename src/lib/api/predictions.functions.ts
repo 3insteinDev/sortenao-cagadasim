@@ -64,8 +64,8 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
       .single();
 
     if (matchError || !match) throw new Error("Jogo não encontrado.");
-    if (new Date(match.kickoff_at) > new Date() && match.status === "scheduled") {
-      throw new Error("Os palpites serão revelados somente após o início do jogo.");
+    if (match.status !== "finished") {
+      throw new Error("Os palpites são revelados somente após o fim do jogo.");
     }
 
     const [
@@ -87,7 +87,7 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
     const hasCurrentScore = match.home_score != null && match.away_score != null;
     const rows = (participants ?? []).map((participant) => {
       const prediction = predictionByUser.get(participant.id);
-      const livePoints =
+      const calculatedPoints =
         prediction && hasCurrentScore
           ? pointsForMatch(match.phase, prediction, {
               home_score: match.home_score ?? 0,
@@ -101,7 +101,7 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
         prediction: prediction
           ? { home_score: prediction.home_score, away_score: prediction.away_score }
           : null,
-        points: match.status === "finished" ? (prediction?.points ?? livePoints) : livePoints,
+        points: prediction?.points ?? calculatedPoints,
         is_current_user: participant.id === context.userId,
       };
     });
