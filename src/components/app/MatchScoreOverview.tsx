@@ -61,7 +61,8 @@ export function MatchScoreOverview() {
               {data.matches.map((match) => (
                 <th key={match.id} className="min-w-28 px-2 py-3 text-center">
                   <span className="block font-display text-lg">
-                    {match.home?.sigla ?? match.home_placeholder} × {match.away?.sigla ?? match.away_placeholder}
+                    {match.home?.sigla ?? match.home_placeholder} ×{" "}
+                    {match.away?.sigla ?? match.away_placeholder}
                   </span>
                   <span className="text-[10px] font-normal text-slate-500">
                     {match.home_score} × {match.away_score}
@@ -88,7 +89,9 @@ export function MatchScoreOverview() {
                   const score = participant.scores[match.id];
                   return (
                     <td key={match.id} className="px-2 py-3 text-center">
-                      <span className="block text-xs text-slate-400">{score?.prediction ?? "—"}</span>
+                      <span className="block text-xs text-slate-400">
+                        {score?.prediction ?? "—"}
+                      </span>
                       <span className={`font-display text-xl ${pointsColor(score?.points ?? 0)}`}>
                         +{score?.points ?? 0}
                       </span>
