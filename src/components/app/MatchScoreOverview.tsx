@@ -79,7 +79,8 @@ export function MatchScoreOverview() {
               >
                 <th className="sticky left-0 z-10 max-w-48 bg-night px-3 py-3 text-left font-bold uppercase">
                   <span className="block truncate">
-                    {participant.nickname}{participant.is_current_user ? " · Você" : ""}
+                    {participant.nickname}
+                    {participant.is_current_user ? " · Você" : ""}
                   </span>
                   <span className="text-[10px] font-normal text-slate-500">
                     {participant.total_points} pts no total
