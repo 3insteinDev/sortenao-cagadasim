@@ -117,6 +117,66 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
     };
   });
 
+export const getFinishedMatchScores = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [
+      { data: matches, error: matchesError },
+      { data: participants, error: participantsError },
+      { data: predictions, error: predictionsError },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("matches")
+        .select(
+          "id,phase,kickoff_at,home_score,away_score,home_placeholder,away_placeholder,home:home_team_id(sigla),away:away_team_id(sigla)",
+        )
+        .eq("status", "finished")
+        .order("kickoff_at", { ascending: false }),
+      supabaseAdmin
+        .from("leaderboard_entries")
+        .select("id,nickname,total_points")
+        .order("total_points", { ascending: false }),
+      supabaseAdmin.from("predictions").select("user_id,match_id,home_score,away_score,points"),
+    ]);
+    if (matchesError) throw matchesError;
+    if (participantsError) throw participantsError;
+    if (predictionsError) throw predictionsError;
+
+    const finishedMatches = (matches ?? []).map((match) => ({
+      ...match,
+      home: Array.isArray(match.home) ? (match.home[0] ?? null) : match.home,
+      away: Array.isArray(match.away) ? (match.away[0] ?? null) : match.away,
+    }));
+    const finishedById = new Map(finishedMatches.map((match) => [match.id, match]));
+    const scoresByUser = new Map<string, Record<string, { prediction: string; points: number }>>();
+
+    for (const prediction of predictions ?? []) {
+      const match = finishedById.get(prediction.match_id);
+      if (!match || match.home_score == null || match.away_score == null) continue;
+      const userScores = scoresByUser.get(prediction.user_id) ?? {};
+      userScores[prediction.match_id] = {
+        prediction: `${prediction.home_score} × ${prediction.away_score}`,
+        points:
+          prediction.points ??
+          pointsForMatch(match.phase, prediction, {
+            home_score: match.home_score,
+            away_score: match.away_score,
+          }),
+      };
+      scoresByUser.set(prediction.user_id, userScores);
+    }
+
+    return {
+      matches: finishedMatches,
+      participants: (participants ?? []).map((participant) => ({
+        ...participant,
+        is_current_user: participant.id === context.userId,
+        scores: scoresByUser.get(participant.id) ?? {},
+      })),
+    };
+  });
+
 export const submitAllPredictions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => submitSchema.parse(d))
