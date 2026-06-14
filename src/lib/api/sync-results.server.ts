@@ -37,7 +37,9 @@ export async function syncFootballDataResults() {
   const remote = await fetchFinishedMatches(apiKey);
   const { data: localMatches, error: readErr } = await supabaseAdmin
     .from("matches")
-    .select("id,external_id,kickoff_at,manual_override,status,home:home_team_id(sigla),away:away_team_id(sigla)");
+    .select(
+      "id,external_id,kickoff_at,manual_override,status,home_score,away_score,home:home_team_id(sigla),away:away_team_id(sigla)",
+    );
   if (readErr) throw readErr;
 
   let updated = 0;
