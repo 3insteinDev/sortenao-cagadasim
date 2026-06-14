@@ -9,6 +9,18 @@ type FDMatch = {
   score: { fullTime: { home: number | null; away: number | null } };
 };
 
+type LocalMatch = {
+  id: string;
+  external_id: number | null;
+  kickoff_at: string;
+  manual_override: boolean;
+  status: string;
+  home_score: number | null;
+  away_score: number | null;
+  home: { sigla: string | null } | null;
+  away: { sigla: string | null } | null;
+};
+
 const TEAM_CODE_ALIASES: Record<string, string> = {
   EUA: "USA",
 };
@@ -19,9 +31,12 @@ function normalizedCode(code: string | null | undefined) {
 }
 
 async function fetchFinishedMatches(apiKey: string): Promise<FDMatch[]> {
-  const res = await fetch("https://api.football-data.org/v4/competitions/WC/matches?status=FINISHED", {
-    headers: { "X-Auth-Token": apiKey },
-  });
+  const res = await fetch(
+    "https://api.football-data.org/v4/competitions/WC/matches?status=FINISHED",
+    {
+      headers: { "X-Auth-Token": apiKey },
+    },
+  );
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`Football-Data API ${res.status}: ${body}`);
@@ -41,6 +56,7 @@ export async function syncFootballDataResults() {
       "id,external_id,kickoff_at,manual_override,status,home_score,away_score,home:home_team_id(sigla),away:away_team_id(sigla)",
     );
   if (readErr) throw readErr;
+  const matches = (localMatches ?? []) as unknown as LocalMatch[];
 
   let updated = 0;
   let unchanged = 0;
@@ -53,10 +69,10 @@ export async function syncFootballDataResults() {
     const away = r.score.fullTime.away;
     if (home == null || away == null) continue;
 
-    let target = (localMatches ?? []).find((m: any) => m.external_id === r.id) as any;
+    let target = matches.find((match) => match.external_id === r.id);
     if (!target) {
       const remoteDay = r.utcDate.slice(0, 10);
-      target = (localMatches ?? []).find((m: any) => {
+      target = matches.find((m) => {
         const sameTeams =
           normalizedCode(m.home?.sigla) === normalizedCode(r.homeTeam.tla) &&
           normalizedCode(m.away?.sigla) === normalizedCode(r.awayTeam.tla);
