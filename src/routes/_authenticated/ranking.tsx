@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { MatchScoreOverview } from "@/components/app/MatchScoreOverview";
 
 export const Route = createFileRoute("/_authenticated/ranking")({ component: RankingPage });
 
@@ -10,7 +11,7 @@ function RankingPage() {
     supabase.rpc("get_leaderboard").then(({ data }) => setRows(data ?? []));
   }, []);
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
       <h1 className="font-display text-5xl uppercase italic mb-8">Ranking Geral</h1>
       <div className="space-y-2">
         {rows.map((r, i) => {
@@ -30,6 +31,7 @@ function RankingPage() {
         })}
         {rows.length === 0 && <p className="text-center text-slate-500 py-12 uppercase tracking-widest text-sm">Nenhum participante ainda</p>}
       </div>
+      <MatchScoreOverview />
     </div>
   );
 }
