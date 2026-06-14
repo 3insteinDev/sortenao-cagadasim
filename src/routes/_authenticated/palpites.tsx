@@ -7,7 +7,8 @@ import { Flag } from "@/components/app/Flag";
 import { MatchParticipantPredictions } from "@/components/app/MatchParticipantPredictions";
 import { PHASE_LABEL, PHASE_ORDER, type Phase } from "@/lib/db/types";
 import { toast } from "sonner";
-import { Lock, Clock, CheckCircle2, Dices } from "lucide-react";
+import { Lock, Clock, CheckCircle2, Dices, Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/_authenticated/palpites")({ component: PalpitesPage });
 
@@ -19,6 +20,7 @@ function PalpitesPage() {
   const submit = useServerFn(submitAllPredictions);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [savingMatchId, setSavingMatchId] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [randomOpen, setRandomOpen] = useState(false);
   const [profile, setProfile] = useState<any>(null);
@@ -126,6 +128,40 @@ function PalpitesPage() {
     setScores(next);
     setRandomOpen(false);
     toast.success("Palpites aleatórios preenchidos. Revise antes de enviar!");
+  }
+
+  async function saveMatch(matchId: string) {
+    const score = scores[matchId];
+    if (!score || score.h === "" || score.a === "") return;
+    setSavingMatchId(matchId);
+    try {
+      await submit({
+        data: {
+          matches: [
+            {
+              match_id: matchId,
+              home_score: parseInt(score.h, 10),
+              away_score: parseInt(score.a, 10),
+            },
+          ],
+          tournament: [],
+        },
+      });
+      setExisting((current) => ({
+        ...current,
+        [matchId]: { h: parseInt(score.h, 10), a: parseInt(score.a, 10) },
+      }));
+      setScores((current) => {
+        const next = { ...current };
+        delete next[matchId];
+        return next;
+      });
+      toast.success("Palpite salvo!");
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Erro ao salvar o palpite");
+    } finally {
+      setSavingMatchId(null);
+    }
   }
 
   async function doSubmit() {
@@ -246,6 +282,11 @@ function PalpitesPage() {
                 : status === "submitted"
                   ? "text-gold"
                   : "text-slate-500";
+          const changed =
+            !disabled &&
+            s.h !== "" &&
+            s.a !== "" &&
+            (Number(s.h) !== exists?.h || Number(s.a) !== exists?.a);
           return (
             <div
               key={m.id}
@@ -300,6 +341,19 @@ function PalpitesPage() {
                   />
                 </div>
               </div>
+              {!disabled && (
+                <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={!changed || savingMatchId === m.id}
+                    onClick={() => saveMatch(m.id)}
+                    className="font-black uppercase tracking-widest"
+                  >
+                    <Save /> {savingMatchId === m.id ? "Salvando..." : "Salvar este palpite"}
+                  </Button>
+                </div>
+              )}
               {hasResult && (
                 <div className="mt-2 text-center text-xs text-slate-400">
                   Resultado oficial: {m.home_score} × {m.away_score}
