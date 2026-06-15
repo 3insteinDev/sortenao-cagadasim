@@ -26,7 +26,8 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<ParticipantData | null>(null);
-  const isFinished = match.status === "finished";
+  const isAvailable = match.status === "finished" || match.status === "live";
+  const isLive = match.status === "live";
 
   function pointsColor(points: number) {
     if (points === 10 || points === 15) return "text-gold";
@@ -37,9 +38,9 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
   }
 
   async function handleOpen() {
-    if (!isFinished) return;
+    if (!isAvailable) return;
     setOpen(true);
-    if (data) return;
+    if (data && !isLive) return;
     setLoading(true);
     setError("");
     try {
@@ -57,12 +58,16 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
         type="button"
         variant="outline"
         size="sm"
-        disabled={!isFinished}
+        disabled={!isAvailable}
         onClick={handleOpen}
         className="border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest hover:bg-white/10"
       >
-        {isFinished ? <Eye /> : <Lock />}
-        {isFinished ? "Ver palpites" : "Disponível após o fim"}
+        {isAvailable ? <Eye /> : <Lock />}
+        {isAvailable
+          ? isLive
+            ? "Ver palpites (ao vivo)"
+            : "Ver palpites"
+          : "Disponível após o início"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -71,7 +76,11 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
             <DialogTitle className="font-display text-2xl uppercase italic sm:text-3xl">
               Palpites da partida
             </DialogTitle>
-            <DialogDescription>Palpites revelados após o fim · pontuação final</DialogDescription>
+            <DialogDescription>
+              {isLive
+                ? "Acompanhe os palpites em tempo real · pontuação parcial"
+                : "Palpites revelados · pontuação final"}
+            </DialogDescription>
           </DialogHeader>
 
           {loading && (
