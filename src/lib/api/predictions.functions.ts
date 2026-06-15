@@ -64,8 +64,8 @@ export const getMatchParticipantPredictions = createServerFn({ method: "GET" })
       .single();
 
     if (matchError || !match) throw new Error("Jogo não encontrado.");
-    if (match.status !== "finished") {
-      throw new Error("Os palpites são revelados somente após o fim do jogo.");
+    if (match.status !== "finished" && match.status !== "live") {
+      throw new Error("Os palpites são revelados somente após o início do jogo.");
     }
 
     const [

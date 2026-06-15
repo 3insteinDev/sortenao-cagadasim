@@ -359,7 +359,7 @@ function PalpitesPage() {
                   Resultado oficial: {m.home_score} × {m.away_score}
                 </div>
               )}
-              {m.status === "finished" && (
+              {(m.status === "finished" || m.status === "live") && (
                 <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
                   <MatchParticipantPredictions match={m} />
                 </div>
