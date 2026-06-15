@@ -42,30 +42,6 @@ export const updateMatchTeams = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-function pointsForGroup(pred: { h: number; a: number }, res: { h: number; a: number }) {
-  if (pred.h === res.h && pred.a === res.a) return 10;
-  const predWinner = pred.h === pred.a ? 0 : pred.h > pred.a ? 1 : -1;
-  const resWinner = res.h === res.a ? 0 : res.h > res.a ? 1 : -1;
-  if (predWinner === resWinner && resWinner === 0) return 5; // both empate
-  if (predWinner === resWinner) {
-    if (pred.h === res.h || pred.a === res.a) return 7;
-    return 5;
-  }
-  if (pred.h === res.h || pred.a === res.a) return 2;
-  return 0;
-}
-function pointsForKO(pred: { h: number; a: number }, res: { h: number; a: number }) {
-  if (pred.h === res.h && pred.a === res.a) return 15;
-  const predWinner = pred.h === pred.a ? 0 : pred.h > pred.a ? 1 : -1;
-  const resWinner = res.h === res.a ? 0 : res.h > res.a ? 1 : -1;
-  if (predWinner === resWinner && resWinner !== 0) return 8;
-  if (pred.h === res.h || pred.a === res.a) return 3;
-  return 0;
-}
-const TP_POINTS: Record<string, number> = {
-  group_1st: 5, group_2nd: 5, r16: 3, qf: 5, sf: 8, finalist: 12, champion: 30, runner_up: 15, third: 10,
-};
-
 export const recalculateAll = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
