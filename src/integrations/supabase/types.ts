@@ -444,7 +444,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      recalculate_all_scores: { Args: never; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
