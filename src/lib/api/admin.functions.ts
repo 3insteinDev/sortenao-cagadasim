@@ -71,63 +71,12 @@ export const recalculateAll = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
-
-    // 1) Match points
-    const { data: matches } = await supabase.from("matches").select("id,phase,home_score,away_score,status").eq("status","finished");
-    const matchMap = new Map<string, { phase: string; h: number; a: number }>();
-    for (const m of matches ?? []) {
-      if (m.home_score == null || m.away_score == null) continue;
-      matchMap.set(m.id, { phase: m.phase, h: m.home_score, a: m.away_score });
-    }
-
-    const { data: preds } = await supabase.from("predictions").select("id,user_id,match_id,home_score,away_score");
-    const userPoints = new Map<string, number>();
-    const userHits = new Map<string, number>();
-    const predUpdates: { id: string; points: number }[] = [];
-    for (const p of preds ?? []) {
-      const m = matchMap.get(p.match_id);
-      let pts = 0;
-      if (m) {
-        pts = m.phase === "group"
-          ? pointsForGroup({ h: p.home_score, a: p.away_score }, { h: m.h, a: m.a })
-          : pointsForKO({ h: p.home_score, a: p.away_score }, { h: m.h, a: m.a });
-      }
-      predUpdates.push({ id: p.id, points: pts });
-      userPoints.set(p.user_id, (userPoints.get(p.user_id) ?? 0) + pts);
-      if (pts > 0) userHits.set(p.user_id, (userHits.get(p.user_id) ?? 0) + 1);
-    }
-
-    // batch update predictions
-    for (const u of predUpdates) {
-      await supabase.from("predictions").update({ points: u.points }).eq("id", u.id);
-    }
-
-    // 2) Tournament predictions
-    const { data: tres } = await supabase.from("tournament_results").select("result_type,group_letter,team_id");
-    const resSet = new Set<string>((tres ?? []).map((r) => `${r.result_type}|${r.group_letter ?? ""}|${r.team_id}`));
-
-    const { data: tps } = await supabase.from("tournament_predictions").select("id,user_id,pred_type,group_letter,team_id");
-    for (const tp of tps ?? []) {
-      const key = `${tp.pred_type}|${tp.group_letter ?? ""}|${tp.team_id}`;
-      const pts = resSet.has(key) ? (TP_POINTS[tp.pred_type] ?? 0) : 0;
-      await supabase.from("tournament_predictions").update({ points: pts }).eq("id", tp.id);
-      userPoints.set(tp.user_id, (userPoints.get(tp.user_id) ?? 0) + pts);
-      if (pts > 0) userHits.set(tp.user_id, (userHits.get(tp.user_id) ?? 0) + 1);
-    }
-
-    // 3) Update profiles
-    const { data: profiles } = await supabase.from("profiles").select("id,total_points");
-    for (const p of profiles ?? []) {
-      const newPts = userPoints.get(p.id) ?? 0;
-      const newHits = userHits.get(p.id) ?? 0;
-      await supabase.from("profiles").update({
-        total_points: newPts,
-        total_hits: newHits,
-        prev_rank: null,
-      }).eq("id", p.id);
-    }
-
-    return { ok: true, profiles: profiles?.length ?? 0 };
+    // Recálculo set-based em uma única chamada SQL — O(N) no banco em vez de
+    // milhares de round-trips HTTP. Escala linearmente, não importa quantos
+    // jogos já estejam finalizados.
+    const { data, error } = await supabase.rpc("recalculate_all_scores");
+    if (error) throw error;
+    return (data as { ok: boolean; profiles: number }) ?? { ok: true, profiles: 0 };
   });
 
 export const setTournamentResult = createServerFn({ method: "POST" })
