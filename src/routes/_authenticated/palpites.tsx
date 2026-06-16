@@ -197,16 +197,16 @@ function PalpitesPage() {
     );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 pb-32 space-y-6">
+    <div className="max-w-4xl mx-auto px-4 py-6 sm:py-8 pb-32 space-y-6">
       <div>
-        <h1 className="font-display text-5xl uppercase italic mb-2">Meus Palpites</h1>
-        <p className="text-slate-500 text-sm uppercase tracking-widest">
+        <h1 className="font-display text-3xl sm:text-5xl uppercase italic mb-2">Meus Palpites</h1>
+        <p className="text-slate-500 text-xs sm:text-sm uppercase tracking-widest">
           Preencha todos os jogos que desejar antes de enviar
         </p>
       </div>
 
       <div className="bg-white/5 border border-white/10 p-4">
-        <div className="flex justify-between text-xs uppercase tracking-widest text-slate-400 mb-2">
+        <div className="flex flex-wrap justify-between gap-x-2 gap-y-1 text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 mb-2">
           <span>Progresso</span>
           <span>
             {filledCount} de {totalEditable} jogos preenchidos (
@@ -290,10 +290,10 @@ function PalpitesPage() {
           return (
             <div
               key={m.id}
-              className={`bg-white/5 border border-white/10 p-4 ${disabled ? "opacity-70" : ""}`}
+              className={`bg-white/5 border border-white/10 p-3 sm:p-4 ${disabled ? "opacity-70" : ""}`}
             >
-              <div className="flex justify-between items-center mb-3 text-[10px] uppercase tracking-widest text-slate-500">
-                <span>
+              <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-3 text-[10px] uppercase tracking-widest text-slate-500">
+                <span className="min-w-0">
                   {PHASE_LABEL[m.phase as Phase]}
                   {m.group_letter ? ` · Grupo ${m.group_letter}` : ""}
                   {m.round ? ` · Rodada ${m.round}` : ""}
@@ -301,13 +301,13 @@ function PalpitesPage() {
                     ? ` · ${new Date(m.kickoff_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}`
                     : ""}
                 </span>
-                <span className={`flex items-center gap-1 ${statusColor}`}>
+                <span className={`flex shrink-0 items-center gap-1 ${statusColor}`}>
                   {StatusIcon && <StatusIcon className="size-3" />}
                   {statusLabel}
                 </span>
               </div>
-              <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                <div className="flex items-center gap-2 justify-end">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
+                <div className="flex min-w-0 items-center gap-2 justify-end">
                   <Flag
                     showName
                     flag={m.home?.flag}
@@ -315,24 +315,24 @@ function PalpitesPage() {
                     sigla={m.home?.sigla ?? m.home_placeholder}
                   />
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <input
                     value={s.h}
                     onChange={(e) => setScore(m.id, "h", e.target.value)}
                     disabled={disabled}
                     inputMode="numeric"
-                    className="w-12 text-center bg-night border border-white/10 py-2 font-display text-2xl disabled:opacity-60"
+                    className="w-10 sm:w-12 text-center bg-night border border-white/10 py-2 font-display text-xl sm:text-2xl disabled:opacity-60"
                   />
-                  <span className="font-display text-xl text-slate-500">×</span>
+                  <span className="font-display text-lg sm:text-xl text-slate-500">×</span>
                   <input
                     value={s.a}
                     onChange={(e) => setScore(m.id, "a", e.target.value)}
                     disabled={disabled}
                     inputMode="numeric"
-                    className="w-12 text-center bg-night border border-white/10 py-2 font-display text-2xl disabled:opacity-60"
+                    className="w-10 sm:w-12 text-center bg-night border border-white/10 py-2 font-display text-xl sm:text-2xl disabled:opacity-60"
                   />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   <Flag
                     showName
                     flag={m.away?.flag}
