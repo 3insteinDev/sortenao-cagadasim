@@ -15,7 +15,6 @@ import { registerPWA } from "../lib/pwa";
 import { Toaster } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -82,16 +81,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Bolão Copa 2026 — O maior bolão do mundo" },
-      { name: "description", content: "Faça seus palpites para todos os jogos da Copa do Mundo 2026 e dispute o ranking geral." },
+      {
+        name: "description",
+        content:
+          "Faça seus palpites para todos os jogos da Copa do Mundo 2026 e dispute o ranking geral.",
+      },
       { property: "og:title", content: "Bolão Copa 2026 — O maior bolão do mundo" },
-      { property: "og:description", content: "Faça seus palpites para todos os jogos da Copa do Mundo 2026 e dispute o ranking geral." },
+      {
+        property: "og:description",
+        content:
+          "Faça seus palpites para todos os jogos da Copa do Mundo 2026 e dispute o ranking geral.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Bolão Copa 2026 — O maior bolão do mundo" },
-      { name: "twitter:description", content: "Faça seus palpites para todos os jogos da Copa do Mundo 2026 e dispute o ranking geral." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KMEpdXniMKYOLITYh07SUBgNGp42/social-images/social-1781124009388-Brasil.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/KMEpdXniMKYOLITYh07SUBgNGp42/social-images/social-1781124009388-Brasil.webp" },
+      {
+        name: "twitter:description",
+        content:
+          "Faça seus palpites para todos os jogos da Copa do Mundo 2026 e dispute o ranking geral.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/KMEpdXniMKYOLITYh07SUBgNGp42/social-images/social-1781124009388-Brasil.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/KMEpdXniMKYOLITYh07SUBgNGp42/social-images/social-1781124009388-Brasil.webp",
+      },
       { name: "theme-color", content: "#0a0f1c" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -101,7 +120,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;900&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;900&display=swap",
+      },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", type: "image/png", sizes: "192x192", href: "/icon-192.png" },
       { rel: "icon", type: "image/png", sizes: "512x512", href: "/icon-512.png" },

@@ -35,7 +35,8 @@ export default defineConfig({
             },
             {
               // CacheFirst for same-origin hashed assets
-              urlPattern: ({ url }) => url.origin === self.location.origin && /\.[a-f0-9]{8,}\./.test(url.pathname),
+              urlPattern: ({ url }) =>
+                url.origin === self.location.origin && /\.[a-f0-9]{8,}\./.test(url.pathname),
               handler: "CacheFirst",
               options: {
                 cacheName: "assets",

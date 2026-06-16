@@ -30,9 +30,7 @@ export function registerPWA() {
     navigator.serviceWorker
       .getRegistrations()
       .then((regs) =>
-        regs
-          .filter((r) => r.scope === location.origin + "/")
-          .forEach((r) => r.unregister()),
+        regs.filter((r) => r.scope === location.origin + "/").forEach((r) => r.unregister()),
       )
       .catch(() => {});
     return;
