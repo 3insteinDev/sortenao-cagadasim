@@ -32,10 +32,10 @@ function Dashboard() {
   const p = data.profile;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
       <div>
         <p className="text-slate-500 text-xs uppercase tracking-widest">Bem-vindo de volta,</p>
-        <h1 className="font-display text-5xl uppercase italic tracking-tighter">{p.nickname}</h1>
+        <h1 className="font-display text-3xl sm:text-5xl uppercase italic tracking-tighter break-words">{p.nickname}</h1>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -53,26 +53,26 @@ function Dashboard() {
 
       <Section title="Próximos Jogos">
         {data.upcoming.length === 0 ? <Empty>Nenhum jogo agendado</Empty> : data.upcoming.map((m: any) => (
-          <div key={m.id} className="bg-white/5 border-l-4 border-grass p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3 text-sm min-w-0 flex-1">
+          <div key={m.id} className="bg-white/5 border-l-4 border-grass p-3 sm:p-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <div className="flex items-center gap-2 sm:gap-3 text-sm min-w-0 flex-1">
               <Flag showName flag={m.home?.flag} name={m.home?.name ?? m.home_placeholder} sigla={m.home?.sigla ?? m.home_placeholder} />
-              <span className="text-slate-500 font-display text-xl shrink-0">VS</span>
+              <span className="text-slate-500 font-display text-lg sm:text-xl shrink-0">VS</span>
               <Flag showName flag={m.away?.flag} name={m.away?.name ?? m.away_placeholder} sigla={m.away?.sigla ?? m.away_placeholder} />
             </div>
-            <span className="text-[10px] uppercase tracking-widest text-slate-500">{new Date(m.kickoff_at).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
+            <span className="text-[10px] uppercase tracking-widest text-slate-500 shrink-0">{new Date(m.kickoff_at).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}</span>
           </div>
         ))}
       </Section>
 
       <Section title="Últimos Resultados">
         {data.lastResults.length === 0 ? <Empty>Sem resultados ainda</Empty> : data.lastResults.map((r: any, i: number) => (
-          <div key={i} className="bg-white/5 p-4 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm">
+          <div key={i} className="bg-white/5 p-3 sm:p-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm min-w-0 flex-1">
               <Flag flag={r.match?.home?.flag} name={r.match?.home?.name} sigla={r.match?.home?.sigla} />
-              <span className="font-display text-xl">{r.match?.home_score ?? "-"} : {r.match?.away_score ?? "-"}</span>
+              <span className="font-display text-lg sm:text-xl shrink-0">{r.match?.home_score ?? "-"} : {r.match?.away_score ?? "-"}</span>
               <Flag flag={r.match?.away?.flag} name={r.match?.away?.name} sigla={r.match?.away?.sigla} />
             </div>
-            <span className={`font-display text-xl ${r.points > 0 ? "text-grass" : "text-slate-600"}`}>+{r.points}</span>
+            <span className={`font-display text-lg sm:text-xl shrink-0 ${r.points > 0 ? "text-grass" : "text-slate-600"}`}>+{r.points}</span>
           </div>
         ))}
       </Section>

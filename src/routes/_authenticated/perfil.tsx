@@ -32,9 +32,9 @@ function Profile() {
   if (!p) return <div className="p-8 text-center text-slate-500 uppercase tracking-widest">Carregando...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
-      <h1 className="font-display text-5xl uppercase italic">Perfil</h1>
-      <div className="bg-white/5 border border-white/10 p-6 space-y-4">
+    <div className="max-w-3xl mx-auto px-4 py-6 sm:py-8 space-y-6 sm:space-y-8">
+      <h1 className="font-display text-3xl sm:text-5xl uppercase italic">Perfil</h1>
+      <div className="bg-white/5 border border-white/10 p-4 sm:p-6 space-y-4">
         <div>
           <label className="text-[10px] uppercase tracking-widest text-slate-500 block mb-1">Nome completo</label>
           <input className="w-full bg-white/5 border border-white/10 px-4 py-2" value={p.full_name ?? ""} onChange={(e) => setP({ ...p, full_name: e.target.value })} />
