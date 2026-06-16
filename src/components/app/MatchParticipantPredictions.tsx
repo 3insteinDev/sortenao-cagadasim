@@ -18,6 +18,11 @@ type MatchSummary = {
   kickoff_at: string;
 };
 
+function hasMatchStarted(match: MatchSummary) {
+  if (match.status === "finished" || match.status === "live") return true;
+  return match.status === "scheduled" && new Date(match.kickoff_at) <= new Date();
+}
+
 type ParticipantData = Awaited<ReturnType<typeof getMatchParticipantPredictions>>;
 
 export function MatchParticipantPredictions({ match }: { match: MatchSummary }) {
@@ -26,7 +31,7 @@ export function MatchParticipantPredictions({ match }: { match: MatchSummary }) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<ParticipantData | null>(null);
-  const isAvailable = match.status === "finished" || match.status === "live";
+  const isAvailable = hasMatchStarted(match);
   const isLive = match.status === "live";
 
   function pointsColor(points: number) {
