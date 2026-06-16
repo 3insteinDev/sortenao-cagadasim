@@ -11,8 +11,8 @@ function RankingPage() {
     supabase.rpc("get_leaderboard").then(({ data }) => setRows(data ?? []));
   }, []);
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
-      <h1 className="font-display text-5xl uppercase italic mb-8">Ranking Geral</h1>
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8 space-y-8 sm:space-y-10">
+      <h1 className="font-display text-3xl sm:text-5xl uppercase italic mb-4 sm:mb-8">Ranking Geral</h1>
       <div className="space-y-2">
         {rows.map((r, i) => {
           const pos = i + 1;
@@ -26,17 +26,17 @@ function RankingPage() {
           return (
             <div
               key={r.id}
-              className={`flex items-center gap-4 p-4 border-l-4 ${pos === 1 ? "border-gold bg-gold/10" : pos === 2 ? "border-slate-400 bg-white/5" : pos === 3 ? "border-amber-700 bg-amber-700/10" : "border-slate-700 bg-white/5"}`}
+              className={`flex items-center gap-3 sm:gap-4 p-3 sm:p-4 border-l-4 ${pos === 1 ? "border-gold bg-gold/10" : pos === 2 ? "border-slate-400 bg-white/5" : pos === 3 ? "border-amber-700 bg-amber-700/10" : "border-slate-700 bg-white/5"}`}
             >
-              <span className="font-display text-2xl w-10 text-center">{pos}</span>
+              <span className="font-display text-xl sm:text-2xl w-8 sm:w-10 text-center shrink-0">{pos}</span>
               <div className="flex-1 min-w-0">
                 <div className="font-bold uppercase text-sm truncate">{r.nickname}</div>
                 <div className="text-[10px] uppercase tracking-widest text-slate-500">
                   {r.total_hits} acertos
                 </div>
               </div>
-              <span className="text-sm">{trend}</span>
-              <span className="font-display text-2xl text-grass">{r.total_points}</span>
+              <span className="text-sm shrink-0">{trend}</span>
+              <span className="font-display text-xl sm:text-2xl text-grass shrink-0">{r.total_points}</span>
             </div>
           );
         })}
