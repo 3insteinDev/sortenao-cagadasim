@@ -28,11 +28,11 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function Admin() {
   const [tab, setTab] = useState<"matches" | "users" | "actions">("matches");
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <h1 className="font-display text-5xl uppercase italic mb-6">Painel Admin</h1>
-      <div className="flex gap-2 border-b border-white/10 mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
+      <h1 className="font-display text-3xl sm:text-5xl uppercase italic mb-4 sm:mb-6">Painel Admin</h1>
+      <div className="flex gap-2 border-b border-white/10 mb-6 overflow-x-auto">
         {(["matches","users","actions"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} className={`px-4 py-2 text-xs uppercase tracking-widest font-bold ${tab===t?"text-grass border-b-2 border-grass":"text-slate-500"}`}>
+          <button key={t} onClick={() => setTab(t)} className={`px-3 sm:px-4 py-2 text-xs uppercase tracking-widest font-bold whitespace-nowrap ${tab===t?"text-grass border-b-2 border-grass":"text-slate-500"}`}>
             {t === "matches" ? "Jogos" : t === "users" ? "Usuários" : "Ações"}
           </button>
         ))}
