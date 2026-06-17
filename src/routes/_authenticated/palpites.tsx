@@ -483,22 +483,75 @@ function TournamentSection({
   onChange: (k: string, v: string) => void;
 }) {
   const groups = Array.from(new Set(teams.map((t) => t.group_letter).filter(Boolean))) as string[];
-  function Select({ k }: { k: string }) {
+  function CountrySelect({ k }: { k: string }) {
     const v = value[k] ?? existing[k] ?? "";
+    const selected = teams.find((t) => t.id === v);
+    const [open, setOpen] = useState(false);
+
     return (
-      <select
-        value={v}
-        disabled={locked}
-        onChange={(e) => onChange(k, e.target.value)}
-        className="bg-white/5 border border-white/10 px-2 py-2 text-sm w-full disabled:opacity-60"
-      >
-        <option value="">—</option>
-        {teams.map((t) => (
-          <option key={t.id} value={t.id}>
-            {t.flag} {t.name}
-          </option>
-        ))}
-      </select>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            disabled={locked}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 bg-white/5 border border-white/10 px-3 py-2.5 text-left text-sm disabled:opacity-60",
+              !selected && "text-slate-500",
+            )}
+          >
+            {selected ? (
+              <span className="inline-flex items-center gap-2 min-w-0">
+                {selected.flag && (
+                  <span className="text-lg leading-none shrink-0">{selected.flag}</span>
+                )}
+                <span className="truncate font-bold uppercase tracking-tight text-xs">
+                  {selected.name}
+                </span>
+              </span>
+            ) : (
+              <span>Selecione um país</span>
+            )}
+            {selected && !locked ? (
+              <X
+                className="ml-auto size-4 shrink-0 opacity-60 hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange(k, "");
+                }}
+              />
+            ) : (
+              <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-60" />
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[260px] sm:w-[300px] p-0" align="start">
+          <Command>
+            <CommandInput placeholder="Buscar país..." className="h-10" />
+            <CommandList className="max-h-[260px]">
+              <CommandEmpty>Nenhum país encontrado.</CommandEmpty>
+              <CommandGroup>
+                {teams.map((t) => (
+                  <CommandItem
+                    key={t.id}
+                    value={`${t.name} ${t.sigla}`}
+                    onSelect={() => {
+                      onChange(k, t.id);
+                      setOpen(false);
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    {t.flag && <span className="text-lg leading-none shrink-0">{t.flag}</span>}
+                    <span className="font-bold uppercase tracking-tight text-xs">{t.name}</span>
+                    {v === t.id && (
+                      <CheckCircle2 className="ml-auto size-4 text-grass shrink-0" />
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     );
   }
   return (
