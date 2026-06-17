@@ -596,7 +596,7 @@ function TournamentSection({
               <label className="text-[10px] uppercase tracking-widest text-slate-500">
                 1º colocado
               </label>
-              <Select k={`group_1st|${g}`} />
+              <CountrySelect k={`group_1st|${g}`} />
               <label className="text-[10px] uppercase tracking-widest text-slate-500 mt-2 block">
                 2º colocado
               </label>
