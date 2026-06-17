@@ -387,6 +387,7 @@ function PalpitesPage() {
           value={tp}
           existing={existingTp}
           locked={tournamentLocked}
+          deadline={tournamentDeadline}
           onChange={(k, v) => setTp((s) => ({ ...s, [k]: v }))}
         />
       )}
