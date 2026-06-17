@@ -10,8 +10,18 @@ import { Flag } from "@/components/app/Flag";
 import { MatchParticipantPredictions } from "@/components/app/MatchParticipantPredictions";
 import { PHASE_LABEL, PHASE_ORDER, type Phase } from "@/lib/db/types";
 import { toast } from "sonner";
-import { Lock, Clock, CheckCircle2, Dices, Save } from "lucide-react";
+import { Lock, Clock, CheckCircle2, Dices, Save, ChevronsUpDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/palpites")({ component: PalpitesPage });
 
