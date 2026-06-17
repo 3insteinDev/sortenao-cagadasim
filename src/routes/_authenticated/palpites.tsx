@@ -600,7 +600,7 @@ function TournamentSection({
               <label className="text-[10px] uppercase tracking-widest text-slate-500 mt-2 block">
                 2º colocado
               </label>
-              <Select k={`group_2nd|${g}`} />
+              <CountrySelect k={`group_2nd|${g}`} />
             </div>
           ))}
         </div>
@@ -616,7 +616,7 @@ function TournamentSection({
             <div className="font-display text-xl mb-2">
               {e} {l}
             </div>
-            <Select k={`${k}|`} />
+            <CountrySelect k={`${k}|`} />
           </div>
         ))}
       </div>
