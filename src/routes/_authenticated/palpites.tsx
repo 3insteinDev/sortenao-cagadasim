@@ -462,12 +462,14 @@ function TournamentSection({
   value,
   existing,
   locked,
+  deadline,
   onChange,
 }: {
   teams: Team[];
   value: Record<string, string>;
   existing: Record<string, string>;
   locked: boolean;
+  deadline: Date;
   onChange: (k: string, v: string) => void;
 }) {
   const groups = Array.from(new Set(teams.map((t) => t.group_letter).filter(Boolean))) as string[];
@@ -492,10 +494,31 @@ function TournamentSection({
   return (
     <div className="space-y-6 border-t border-white/10 pt-6">
       <h2 className="font-display text-3xl uppercase italic">Palpites de Classificação</h2>
-      {locked && (
+      {locked ? (
         <div className="bg-victory/10 border border-victory/30 p-3 text-xs text-slate-300 flex items-center gap-2">
-          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (torneio
-          iniciado).
+          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (prazo
+          encerrado em{" "}
+          {deadline.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          ).
+        </div>
+      ) : (
+        <div className="bg-grass/10 border border-grass/30 p-3 text-xs text-slate-300 flex items-center gap-2">
+          <Clock className="size-4 text-grass" /> Você pode editar seus palpites de classificação
+          até{" "}
+          {deadline.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          .
         </div>
       )}
 
