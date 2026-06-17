@@ -11,17 +11,25 @@ export function Flag({
   showName?: boolean;
   className?: string;
 }) {
+  const displayName = name ?? sigla ?? "TBD";
+  const displaySigla = sigla ?? name ?? "TBD";
   return (
     <span className={`inline-flex items-center gap-1.5 min-w-0 ${className}`}>
       {flag ? <span className="flag-emoji text-xl leading-none shrink-0">{flag}</span> : null}
-      <span className="flex flex-col min-w-0">
+      {showName ? (
+        <>
+          <span className="font-bold uppercase tracking-tight text-xs leading-tight truncate sm:hidden">
+            {displaySigla}
+          </span>
+          <span className="hidden sm:inline font-bold uppercase tracking-tight text-xs leading-tight truncate">
+            {displayName}
+          </span>
+        </>
+      ) : (
         <span className="font-bold uppercase tracking-tight text-xs leading-tight truncate">
-          {sigla ?? name ?? "TBD"}
+          {displaySigla}
         </span>
-        {showName && name && sigla && name !== sigla ? (
-          <span className="text-[10px] text-slate-400 truncate leading-tight">{name}</span>
-        ) : null}
-      </span>
+      )}
     </span>
   );
 }
