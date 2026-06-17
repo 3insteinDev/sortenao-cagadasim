@@ -88,10 +88,7 @@ function PalpitesPage() {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
-  const tournamentDeadline = useMemo(
-    () => new Date(TOURNAMENT_PREDICTIONS_DEADLINE),
-    [],
-  );
+  const tournamentDeadline = useMemo(() => new Date(TOURNAMENT_PREDICTIONS_DEADLINE), []);
   const tournamentLocked = now >= tournamentDeadline;
 
   const byPhase = useMemo(() => {
@@ -542,9 +539,7 @@ function TournamentSection({
                   >
                     {t.flag && <span className="text-lg leading-none shrink-0">{t.flag}</span>}
                     <span className="font-bold uppercase tracking-tight text-xs">{t.name}</span>
-                    {v === t.id && (
-                      <CheckCircle2 className="ml-auto size-4 text-grass shrink-0" />
-                    )}
+                    {v === t.id && <CheckCircle2 className="ml-auto size-4 text-grass shrink-0" />}
                   </CommandItem>
                 ))}
               </CommandGroup>
