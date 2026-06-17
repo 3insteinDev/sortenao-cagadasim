@@ -2,7 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { submitAllPredictions } from "@/lib/api/predictions.functions";
+import {
+  submitAllPredictions,
+  TOURNAMENT_PREDICTIONS_DEADLINE,
+} from "@/lib/api/predictions.functions";
 import { Flag } from "@/components/app/Flag";
 import { MatchParticipantPredictions } from "@/components/app/MatchParticipantPredictions";
 import { PHASE_LABEL, PHASE_ORDER, type Phase } from "@/lib/db/types";
@@ -68,12 +71,18 @@ function PalpitesPage() {
   }, []);
 
   // Global lock removed — predictions are editable per match until kickoff.
-  // Tournament classification picks lock once the first match has started.
-  const tournamentLocked = useMemo(
-    () =>
-      matches.some((m: any) => new Date(m.kickoff_at) <= new Date() || m.status !== "scheduled"),
-    [matches],
+  // Tournament classification picks lock at the configured deadline
+  // (18/06/2026 às 13:00 BRT).
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const tournamentDeadline = useMemo(
+    () => new Date(TOURNAMENT_PREDICTIONS_DEADLINE),
+    [],
   );
+  const tournamentLocked = now >= tournamentDeadline;
 
   const byPhase = useMemo(() => {
     const groups: Record<Phase, MatchRow[]> = {
