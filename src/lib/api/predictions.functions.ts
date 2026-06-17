@@ -225,13 +225,8 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       if (error) throw error;
     }
 
-    // Tournament predictions: only allowed while no match has started yet
-    const { data: firstStarted } = await supabase
-      .from("matches")
-      .select("id")
-      .lte("kickoff_at", nowIso)
-      .limit(1);
-    const tournamentLocked = (firstStarted ?? []).length > 0;
+    // Tournament predictions: allowed until the configured deadline.
+    const tournamentLocked = new Date(nowIso) >= new Date(TOURNAMENT_PREDICTIONS_DEADLINE);
 
     const tpRows = tournamentLocked
       ? []
