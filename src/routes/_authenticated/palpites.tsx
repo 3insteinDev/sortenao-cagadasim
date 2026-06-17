@@ -2,7 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { submitAllPredictions } from "@/lib/api/predictions.functions";
+import {
+  submitAllPredictions,
+  TOURNAMENT_PREDICTIONS_DEADLINE,
+} from "@/lib/api/predictions.functions";
 import { Flag } from "@/components/app/Flag";
 import { MatchParticipantPredictions } from "@/components/app/MatchParticipantPredictions";
 import { PHASE_LABEL, PHASE_ORDER, type Phase } from "@/lib/db/types";
@@ -68,12 +71,18 @@ function PalpitesPage() {
   }, []);
 
   // Global lock removed — predictions are editable per match until kickoff.
-  // Tournament classification picks lock once the first match has started.
-  const tournamentLocked = useMemo(
-    () =>
-      matches.some((m: any) => new Date(m.kickoff_at) <= new Date() || m.status !== "scheduled"),
-    [matches],
+  // Tournament classification picks lock at the configured deadline
+  // (18/06/2026 às 13:00 BRT).
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const tournamentDeadline = useMemo(
+    () => new Date(TOURNAMENT_PREDICTIONS_DEADLINE),
+    [],
   );
+  const tournamentLocked = now >= tournamentDeadline;
 
   const byPhase = useMemo(() => {
     const groups: Record<Phase, MatchRow[]> = {
@@ -378,6 +387,7 @@ function PalpitesPage() {
           value={tp}
           existing={existingTp}
           locked={tournamentLocked}
+          deadline={tournamentDeadline}
           onChange={(k, v) => setTp((s) => ({ ...s, [k]: v }))}
         />
       )}
@@ -452,12 +462,14 @@ function TournamentSection({
   value,
   existing,
   locked,
+  deadline,
   onChange,
 }: {
   teams: Team[];
   value: Record<string, string>;
   existing: Record<string, string>;
   locked: boolean;
+  deadline: Date;
   onChange: (k: string, v: string) => void;
 }) {
   const groups = Array.from(new Set(teams.map((t) => t.group_letter).filter(Boolean))) as string[];
@@ -482,10 +494,31 @@ function TournamentSection({
   return (
     <div className="space-y-6 border-t border-white/10 pt-6">
       <h2 className="font-display text-3xl uppercase italic">Palpites de Classificação</h2>
-      {locked && (
+      {locked ? (
         <div className="bg-victory/10 border border-victory/30 p-3 text-xs text-slate-300 flex items-center gap-2">
-          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (torneio
-          iniciado).
+          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (prazo
+          encerrado em{" "}
+          {deadline.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          ).
+        </div>
+      ) : (
+        <div className="bg-grass/10 border border-grass/30 p-3 text-xs text-slate-300 flex items-center gap-2">
+          <Clock className="size-4 text-grass" /> Você pode editar seus palpites de classificação
+          até{" "}
+          {deadline.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          .
         </div>
       )}
 

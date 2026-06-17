@@ -29,6 +29,10 @@ const submitSchema = z.object({
 
 const matchParticipantsSchema = z.object({ match_id: z.string().uuid() });
 
+// Tournament classification predictions (group winners, champion, etc.) are
+// allowed until 2026-06-18 13:00 BRT (UTC-3) — i.e. 16:00 UTC.
+export const TOURNAMENT_PREDICTIONS_DEADLINE = "2026-06-18T16:00:00Z";
+
 function pointsForMatch(
   phase: string,
   prediction: { home_score: number; away_score: number },
@@ -221,13 +225,8 @@ export const submitAllPredictions = createServerFn({ method: "POST" })
       if (error) throw error;
     }
 
-    // Tournament predictions: only allowed while no match has started yet
-    const { data: firstStarted } = await supabase
-      .from("matches")
-      .select("id")
-      .lte("kickoff_at", nowIso)
-      .limit(1);
-    const tournamentLocked = (firstStarted ?? []).length > 0;
+    // Tournament predictions: allowed until the configured deadline.
+    const tournamentLocked = new Date(nowIso) >= new Date(TOURNAMENT_PREDICTIONS_DEADLINE);
 
     const tpRows = tournamentLocked
       ? []
