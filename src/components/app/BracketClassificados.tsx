@@ -93,8 +93,14 @@ function resolveR32Participants(
         team: teams.find((t) => t.id === teamId) ?? null,
       };
     }
-    const chosenGroup = values[key("r32", `${slot.id}-third-${side}`)] || "";
-    const teamId = chosenGroup ? values[key("group_3rd", chosenGroup)] : "";
+    // Storage: team_id of the chosen 3rd-placed team (matches DB uuid column).
+    const teamId = values[key("r32", `${slot.id}-third-${side}`)] || "";
+    let chosenGroup = "";
+    if (teamId) {
+      for (const g of ["A","B","C","D","E","F","G","H","I","J","K","L"]) {
+        if (values[key("group_3rd", g)] === teamId) { chosenGroup = g; break; }
+      }
+    }
     return {
       label: `3º ${p.groups.join("/")}`,
       team: teams.find((t) => t.id === teamId) ?? null,
