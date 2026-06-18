@@ -22,6 +22,8 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BracketClassificados } from "@/components/app/BracketClassificados";
 
 export const Route = createFileRoute("/_authenticated/palpites")({ component: PalpitesPage });
 
