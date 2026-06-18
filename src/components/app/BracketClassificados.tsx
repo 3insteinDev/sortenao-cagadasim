@@ -569,22 +569,33 @@ function R32Phase({
                   {(["a", "b"] as const).map((side) => {
                     const p = side === "a" ? slot.a : slot.b;
                     if (p.kind !== "third") return <div key={side} />;
-                    const chosen = values[key("r32", `${slot.id}-third-${side}`)] || "";
+                    const chosenTeamId = values[key("r32", `${slot.id}-third-${side}`)] || "";
+                    const opts = p.groups
+                      .map((g) => ({ g, teamId: values[key("group_3rd", g)] || "" }))
+                      .filter((o) => o.teamId);
+                    const currentGroup = opts.find((o) => o.teamId === chosenTeamId)?.g ?? "";
                     return (
                       <div key={side}>
                         <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">
                           3º de qual grupo? ({p.groups.join("/")})
                         </div>
                         <select
-                          value={chosen}
-                          onChange={(e) => update(key("r32", `${slot.id}-third-${side}`), e.target.value)}
+                          value={currentGroup}
+                          onChange={(e) =>
+                            update(
+                              key("r32", `${slot.id}-third-${side}`),
+                              opts.find((o) => o.g === e.target.value)?.teamId ?? "",
+                            )
+                          }
                           disabled={locked}
                           className="w-full bg-white/5 border border-white/10 px-2 py-2 text-xs uppercase font-bold disabled:opacity-60"
                         >
-                          <option value="">—</option>
-                          {p.groups.map((g) => (
-                            <option key={g} value={g}>
-                              Grupo {g}
+                          <option value="">
+                            {opts.length ? "—" : "Defina os 3º colocados antes"}
+                          </option>
+                          {opts.map((o) => (
+                            <option key={o.g} value={o.g}>
+                              Grupo {o.g}
                             </option>
                           ))}
                         </select>
