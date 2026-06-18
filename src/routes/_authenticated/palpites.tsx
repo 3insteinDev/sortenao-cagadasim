@@ -223,6 +223,23 @@ function PalpitesPage() {
         </p>
       </div>
 
+      <Tabs defaultValue="jogos" className="w-full">
+        <TabsList className="w-full grid grid-cols-2 bg-white/5 border border-white/10 h-auto p-1 rounded-none">
+          <TabsTrigger
+            value="jogos"
+            className="rounded-none data-[state=active]:bg-grass data-[state=active]:text-night uppercase tracking-widest text-xs font-bold py-2"
+          >
+            Jogos
+          </TabsTrigger>
+          <TabsTrigger
+            value="classificados"
+            className="rounded-none data-[state=active]:bg-grass data-[state=active]:text-night uppercase tracking-widest text-xs font-bold py-2"
+          >
+            Classificados
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="jogos" className="space-y-6 mt-6">
       <div className="bg-white/5 border border-white/10 p-4">
         <div className="flex flex-wrap justify-between gap-x-2 gap-y-1 text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 mb-2">
           <span>Progresso</span>
