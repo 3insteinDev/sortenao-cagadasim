@@ -11,8 +11,6 @@ const tpSchema = z.object({
   pred_type: z.enum([
     "group_1st",
     "group_2nd",
-    "group_3rd",
-    "r32",
     "r16",
     "qf",
     "sf",
