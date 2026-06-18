@@ -28,23 +28,55 @@ type R32Slot = { id: string; a: Placeholder; b: Placeholder };
 // --- Bracket definition (from FIFA World Cup 2026 image) ---
 export const R32_SLOTS: R32Slot[] = [
   // LEFT side (top → bottom)
-  { id: "r32-1", a: { kind: "group", pos: "1", g: "E" }, b: { kind: "third", groups: ["A", "B", "C", "D", "F"] } },
-  { id: "r32-2", a: { kind: "group", pos: "1", g: "I" }, b: { kind: "third", groups: ["C", "D", "F", "G", "H"] } },
+  {
+    id: "r32-1",
+    a: { kind: "group", pos: "1", g: "E" },
+    b: { kind: "third", groups: ["A", "B", "C", "D", "F"] },
+  },
+  {
+    id: "r32-2",
+    a: { kind: "group", pos: "1", g: "I" },
+    b: { kind: "third", groups: ["C", "D", "F", "G", "H"] },
+  },
   { id: "r32-3", a: { kind: "group", pos: "2", g: "A" }, b: { kind: "group", pos: "2", g: "B" } },
   { id: "r32-4", a: { kind: "group", pos: "1", g: "F" }, b: { kind: "group", pos: "2", g: "C" } },
   { id: "r32-5", a: { kind: "group", pos: "2", g: "K" }, b: { kind: "group", pos: "2", g: "L" } },
   { id: "r32-6", a: { kind: "group", pos: "1", g: "H" }, b: { kind: "group", pos: "2", g: "J" } },
-  { id: "r32-7", a: { kind: "group", pos: "1", g: "D" }, b: { kind: "third", groups: ["B", "E", "F", "I", "J"] } },
-  { id: "r32-8", a: { kind: "group", pos: "1", g: "G" }, b: { kind: "third", groups: ["A", "E", "H", "I", "J"] } },
+  {
+    id: "r32-7",
+    a: { kind: "group", pos: "1", g: "D" },
+    b: { kind: "third", groups: ["B", "E", "F", "I", "J"] },
+  },
+  {
+    id: "r32-8",
+    a: { kind: "group", pos: "1", g: "G" },
+    b: { kind: "third", groups: ["A", "E", "H", "I", "J"] },
+  },
   // RIGHT side
   { id: "r32-9", a: { kind: "group", pos: "1", g: "C" }, b: { kind: "group", pos: "2", g: "F" } },
   { id: "r32-10", a: { kind: "group", pos: "2", g: "E" }, b: { kind: "group", pos: "2", g: "I" } },
-  { id: "r32-11", a: { kind: "group", pos: "1", g: "A" }, b: { kind: "third", groups: ["C", "E", "F", "H", "I"] } },
-  { id: "r32-12", a: { kind: "group", pos: "1", g: "L" }, b: { kind: "third", groups: ["E", "H", "I", "J", "K"] } },
+  {
+    id: "r32-11",
+    a: { kind: "group", pos: "1", g: "A" },
+    b: { kind: "third", groups: ["C", "E", "F", "H", "I"] },
+  },
+  {
+    id: "r32-12",
+    a: { kind: "group", pos: "1", g: "L" },
+    b: { kind: "third", groups: ["E", "H", "I", "J", "K"] },
+  },
   { id: "r32-13", a: { kind: "group", pos: "1", g: "J" }, b: { kind: "group", pos: "2", g: "H" } },
   { id: "r32-14", a: { kind: "group", pos: "2", g: "D" }, b: { kind: "group", pos: "2", g: "G" } },
-  { id: "r32-15", a: { kind: "group", pos: "1", g: "B" }, b: { kind: "third", groups: ["E", "F", "G", "I", "J"] } },
-  { id: "r32-16", a: { kind: "group", pos: "1", g: "K" }, b: { kind: "third", groups: ["D", "E", "I", "J", "L"] } },
+  {
+    id: "r32-15",
+    a: { kind: "group", pos: "1", g: "B" },
+    b: { kind: "third", groups: ["E", "F", "G", "I", "J"] },
+  },
+  {
+    id: "r32-16",
+    a: { kind: "group", pos: "1", g: "K" },
+    b: { kind: "third", groups: ["D", "E", "I", "J", "L"] },
+  },
 ];
 
 // Pairs collapsing each level
@@ -79,11 +111,7 @@ function key(predType: string, slot: string | null) {
  * "which group's third" choice stored under pred_type "r32" with the
  * synthetic suffix "-third-a" / "-third-b".
  */
-function resolveR32Participants(
-  slot: R32Slot,
-  teams: Team[],
-  values: Record<string, string>,
-) {
+function resolveR32Participants(slot: R32Slot, teams: Team[], values: Record<string, string>) {
   function placeholder(p: Placeholder, side: "a" | "b") {
     if (p.kind === "group") {
       const predType = p.pos === "1" ? "group_1st" : "group_2nd";
@@ -97,8 +125,11 @@ function resolveR32Participants(
     const teamId = values[key("r32", `${slot.id}-third-${side}`)] || "";
     let chosenGroup = "";
     if (teamId) {
-      for (const g of ["A","B","C","D","E","F","G","H","I","J","K","L"]) {
-        if (values[key("group_3rd", g)] === teamId) { chosenGroup = g; break; }
+      for (const g of ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]) {
+        if (values[key("group_3rd", g)] === teamId) {
+          chosenGroup = g;
+          break;
+        }
       }
     }
     return {
@@ -120,7 +151,10 @@ function getR16Participants(
   const pair = R16_PAIRS.find((p) => p[0] === r16Id)!;
   const sides = pair.slice(1).map((src) => {
     const winnerId = values[key("r32", src)] || "";
-    return { team: teams.find((t) => t.id === winnerId) ?? null, label: `Vencedor ${src.toUpperCase()}` };
+    return {
+      team: teams.find((t) => t.id === winnerId) ?? null,
+      label: `Vencedor ${src.toUpperCase()}`,
+    };
   });
   return [sides[0], sides[1]];
 }
@@ -134,7 +168,10 @@ function getNextParticipants(
   const pair = pairs.find((p) => p[0] === targetId)!;
   const sides = [pair[1], pair[2]].map((src) => {
     const winnerId = values[key(predTypePrev, src)] || "";
-    return { team: teams.find((t) => t.id === winnerId) ?? null, label: `Vencedor ${src.toUpperCase()}` };
+    return {
+      team: teams.find((t) => t.id === winnerId) ?? null,
+      label: `Vencedor ${src.toUpperCase()}`,
+    };
   });
   return [sides[0], sides[1]];
 }
@@ -253,14 +290,26 @@ export function BracketClassificados({
     <div className="space-y-6">
       {locked ? (
         <div className="bg-victory/10 border border-victory/30 p-3 text-xs text-slate-300 flex items-center gap-2">
-          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (encerrado em{" "}
-          {deadline.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}).
+          <Lock className="size-4 text-victory" /> Palpites de classificação bloqueados (encerrado
+          em{" "}
+          {deadline.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          ).
         </div>
       ) : (
         <div className="bg-grass/10 border border-grass/30 p-3 text-xs text-slate-300 flex items-center gap-2">
           <Clock className="size-4 text-grass" /> Edite até{" "}
-          {deadline.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}.
-          Alterar uma fase anterior limpa automaticamente as próximas.
+          {deadline.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+          . Alterar uma fase anterior limpa automaticamente as próximas.
         </div>
       )}
 
@@ -283,7 +332,13 @@ export function BracketClassificados({
       </div>
 
       {phase === "groups" && (
-        <GroupsPhase teams={teams} groups={groups} values={values} update={update} locked={locked} />
+        <GroupsPhase
+          teams={teams}
+          groups={groups}
+          values={values}
+          update={update}
+          locked={locked}
+        />
       )}
       {phase === "r32" && (
         <R32Phase teams={teams} values={values} update={update} locked={locked} />
@@ -363,8 +418,12 @@ function TeamPick({
         >
           {selected ? (
             <span className="inline-flex items-center gap-2 min-w-0">
-              {selected.flag && <span className="text-lg leading-none shrink-0">{selected.flag}</span>}
-              <span className="truncate font-bold uppercase tracking-tight text-xs">{selected.name}</span>
+              {selected.flag && (
+                <span className="text-lg leading-none shrink-0">{selected.flag}</span>
+              )}
+              <span className="truncate font-bold uppercase tracking-tight text-xs">
+                {selected.name}
+              </span>
             </span>
           ) : (
             <span className="text-xs uppercase tracking-widest">{placeholder}</span>
@@ -400,7 +459,9 @@ function TeamPick({
                 >
                   {t.flag && <span className="text-lg leading-none shrink-0">{t.flag}</span>}
                   <span className="font-bold uppercase tracking-tight text-xs">{t.name}</span>
-                  {value === t.id && <CheckCircle2 className="ml-auto size-4 text-grass shrink-0" />}
+                  {value === t.id && (
+                    <CheckCircle2 className="ml-auto size-4 text-grass shrink-0" />
+                  )}
                 </CommandItem>
               ))}
             </CommandGroup>

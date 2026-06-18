@@ -240,173 +240,179 @@ function PalpitesPage() {
         </TabsList>
 
         <TabsContent value="jogos" className="space-y-6 mt-6">
-      <div className="bg-white/5 border border-white/10 p-4">
-        <div className="flex flex-wrap justify-between gap-x-2 gap-y-1 text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 mb-2">
-          <span>Progresso</span>
-          <span>
-            {filledCount} de {totalEditable} jogos preenchidos (
-            {totalEditable ? Math.round((filledCount / totalEditable) * 100) : 0}%)
-          </span>
-        </div>
-        <div className="h-2 bg-white/10 rounded overflow-hidden">
-          <div
-            className="h-full bg-grass transition-all"
-            style={{ width: `${totalEditable ? (filledCount / totalEditable) * 100 : 0}%` }}
-          />
-        </div>
-      </div>
-      <div className="text-xs text-slate-400">
-        Você pode editar cada palpite até o início da partida. Após o início, o jogo é bloqueado
-        automaticamente.
-      </div>
-
-      <button
-        type="button"
-        onClick={() => setRandomOpen(true)}
-        className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gold/20 border border-gold text-gold font-black uppercase py-3 px-5 tracking-tighter hover:bg-gold hover:text-night transition-colors"
-      >
-        <Dices className="size-5" /> 🎲 Preencher Aleatório
-      </button>
-
-      {/* phase filter */}
-      <div className="flex flex-wrap gap-2">
-        {(["all", ...PHASE_ORDER] as const).map((ph) => (
-          <button
-            key={ph}
-            onClick={() => setPhaseFilter(ph)}
-            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border ${phaseFilter === ph ? "bg-grass text-night border-grass" : "border-white/10 text-slate-400 hover:text-white"}`}
-          >
-            {ph === "all" ? "Todos" : PHASE_LABEL[ph as Phase]}
-          </button>
-        ))}
-      </div>
-
-      {/* Matches list */}
-      <div className="space-y-2">
-        {visibleMatches.map((m) => {
-          const hasResult = m.status === "finished" && m.home_score != null;
-          const started = new Date(m.kickoff_at) <= new Date() || hasResult;
-          const exists = existing[m.id];
-          const disabled = started;
-          const s = scores[m.id] ?? {
-            h: exists?.h?.toString() ?? "",
-            a: exists?.a?.toString() ?? "",
-          };
-          const status = hasResult ? "result" : started ? "started" : exists ? "submitted" : "open";
-          const StatusIcon =
-            status === "result"
-              ? CheckCircle2
-              : status === "started"
-                ? Lock
-                : status === "submitted"
-                  ? CheckCircle2
-                  : Clock;
-          const statusLabel =
-            status === "result"
-              ? "Oficial"
-              : status === "started"
-                ? "Iniciado"
-                : status === "submitted"
-                  ? "Editável"
-                  : "Aberto";
-          const statusColor =
-            status === "result"
-              ? "text-grass"
-              : status === "started"
-                ? "text-victory"
-                : status === "submitted"
-                  ? "text-gold"
-                  : "text-slate-500";
-          const changed =
-            !disabled &&
-            s.h !== "" &&
-            s.a !== "" &&
-            (Number(s.h) !== exists?.h || Number(s.a) !== exists?.a);
-          return (
-            <div
-              key={m.id}
-              className={`bg-white/5 border border-white/10 p-3 sm:p-4 ${disabled ? "opacity-70" : ""}`}
-            >
-              <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-3 text-[10px] uppercase tracking-widest text-slate-500">
-                <span className="min-w-0">
-                  {PHASE_LABEL[m.phase as Phase]}
-                  {m.group_letter ? ` · Grupo ${m.group_letter}` : ""}
-                  {m.round ? ` · Rodada ${m.round}` : ""}
-                  {m.kickoff_at
-                    ? ` · ${new Date(m.kickoff_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}`
-                    : ""}
-                </span>
-                <span className={`flex shrink-0 items-center gap-1 ${statusColor}`}>
-                  {StatusIcon && <StatusIcon className="size-3" />}
-                  {statusLabel}
-                </span>
-              </div>
-              <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
-                <div className="flex min-w-0 items-center gap-2 justify-end">
-                  <Flag
-                    showName
-                    flag={m.home?.flag}
-                    name={m.home?.name ?? m.home_placeholder}
-                    sigla={m.home?.sigla ?? m.home_placeholder}
-                  />
-                </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  <input
-                    value={s.h}
-                    onChange={(e) => setScore(m.id, "h", e.target.value)}
-                    disabled={disabled}
-                    inputMode="numeric"
-                    className="w-10 sm:w-12 text-center bg-night border border-white/10 py-2 font-display text-xl sm:text-2xl disabled:opacity-60"
-                  />
-                  <span className="font-display text-lg sm:text-xl text-slate-500">×</span>
-                  <input
-                    value={s.a}
-                    onChange={(e) => setScore(m.id, "a", e.target.value)}
-                    disabled={disabled}
-                    inputMode="numeric"
-                    className="w-10 sm:w-12 text-center bg-night border border-white/10 py-2 font-display text-xl sm:text-2xl disabled:opacity-60"
-                  />
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <Flag
-                    showName
-                    flag={m.away?.flag}
-                    name={m.away?.name ?? m.away_placeholder}
-                    sigla={m.away?.sigla ?? m.away_placeholder}
-                  />
-                </div>
-              </div>
-              {!disabled && (
-                <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={!changed || savingMatchId === m.id}
-                    onClick={() => saveMatch(m.id)}
-                    className="font-black uppercase tracking-widest"
-                  >
-                    <Save /> {savingMatchId === m.id ? "Salvando..." : "Salvar este palpite"}
-                  </Button>
-                </div>
-              )}
-              {hasResult && (
-                <div className="mt-2 text-center text-xs text-slate-400">
-                  Resultado oficial: {m.home_score} × {m.away_score}
-                </div>
-              )}
-              {(m.status === "finished" ||
-                m.status === "live" ||
-                (m.status === "scheduled" && new Date(m.kickoff_at) <= new Date())) && (
-                <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
-                  <MatchParticipantPredictions match={m} />
-                </div>
-              )}
+          <div className="bg-white/5 border border-white/10 p-4">
+            <div className="flex flex-wrap justify-between gap-x-2 gap-y-1 text-[10px] sm:text-xs uppercase tracking-widest text-slate-400 mb-2">
+              <span>Progresso</span>
+              <span>
+                {filledCount} de {totalEditable} jogos preenchidos (
+                {totalEditable ? Math.round((filledCount / totalEditable) * 100) : 0}%)
+              </span>
             </div>
-          );
-        })}
-      </div>
+            <div className="h-2 bg-white/10 rounded overflow-hidden">
+              <div
+                className="h-full bg-grass transition-all"
+                style={{ width: `${totalEditable ? (filledCount / totalEditable) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+          <div className="text-xs text-slate-400">
+            Você pode editar cada palpite até o início da partida. Após o início, o jogo é bloqueado
+            automaticamente.
+          </div>
 
-      {/* Tournament predictions */}
+          <button
+            type="button"
+            onClick={() => setRandomOpen(true)}
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-gold/20 border border-gold text-gold font-black uppercase py-3 px-5 tracking-tighter hover:bg-gold hover:text-night transition-colors"
+          >
+            <Dices className="size-5" /> 🎲 Preencher Aleatório
+          </button>
+
+          {/* phase filter */}
+          <div className="flex flex-wrap gap-2">
+            {(["all", ...PHASE_ORDER] as const).map((ph) => (
+              <button
+                key={ph}
+                onClick={() => setPhaseFilter(ph)}
+                className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest border ${phaseFilter === ph ? "bg-grass text-night border-grass" : "border-white/10 text-slate-400 hover:text-white"}`}
+              >
+                {ph === "all" ? "Todos" : PHASE_LABEL[ph as Phase]}
+              </button>
+            ))}
+          </div>
+
+          {/* Matches list */}
+          <div className="space-y-2">
+            {visibleMatches.map((m) => {
+              const hasResult = m.status === "finished" && m.home_score != null;
+              const started = new Date(m.kickoff_at) <= new Date() || hasResult;
+              const exists = existing[m.id];
+              const disabled = started;
+              const s = scores[m.id] ?? {
+                h: exists?.h?.toString() ?? "",
+                a: exists?.a?.toString() ?? "",
+              };
+              const status = hasResult
+                ? "result"
+                : started
+                  ? "started"
+                  : exists
+                    ? "submitted"
+                    : "open";
+              const StatusIcon =
+                status === "result"
+                  ? CheckCircle2
+                  : status === "started"
+                    ? Lock
+                    : status === "submitted"
+                      ? CheckCircle2
+                      : Clock;
+              const statusLabel =
+                status === "result"
+                  ? "Oficial"
+                  : status === "started"
+                    ? "Iniciado"
+                    : status === "submitted"
+                      ? "Editável"
+                      : "Aberto";
+              const statusColor =
+                status === "result"
+                  ? "text-grass"
+                  : status === "started"
+                    ? "text-victory"
+                    : status === "submitted"
+                      ? "text-gold"
+                      : "text-slate-500";
+              const changed =
+                !disabled &&
+                s.h !== "" &&
+                s.a !== "" &&
+                (Number(s.h) !== exists?.h || Number(s.a) !== exists?.a);
+              return (
+                <div
+                  key={m.id}
+                  className={`bg-white/5 border border-white/10 p-3 sm:p-4 ${disabled ? "opacity-70" : ""}`}
+                >
+                  <div className="flex flex-wrap justify-between items-center gap-x-2 gap-y-1 mb-3 text-[10px] uppercase tracking-widest text-slate-500">
+                    <span className="min-w-0">
+                      {PHASE_LABEL[m.phase as Phase]}
+                      {m.group_letter ? ` · Grupo ${m.group_letter}` : ""}
+                      {m.round ? ` · Rodada ${m.round}` : ""}
+                      {m.kickoff_at
+                        ? ` · ${new Date(m.kickoff_at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}`
+                        : ""}
+                    </span>
+                    <span className={`flex shrink-0 items-center gap-1 ${statusColor}`}>
+                      {StatusIcon && <StatusIcon className="size-3" />}
+                      {statusLabel}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
+                    <div className="flex min-w-0 items-center gap-2 justify-end">
+                      <Flag
+                        showName
+                        flag={m.home?.flag}
+                        name={m.home?.name ?? m.home_placeholder}
+                        sigla={m.home?.sigla ?? m.home_placeholder}
+                      />
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <input
+                        value={s.h}
+                        onChange={(e) => setScore(m.id, "h", e.target.value)}
+                        disabled={disabled}
+                        inputMode="numeric"
+                        className="w-10 sm:w-12 text-center bg-night border border-white/10 py-2 font-display text-xl sm:text-2xl disabled:opacity-60"
+                      />
+                      <span className="font-display text-lg sm:text-xl text-slate-500">×</span>
+                      <input
+                        value={s.a}
+                        onChange={(e) => setScore(m.id, "a", e.target.value)}
+                        disabled={disabled}
+                        inputMode="numeric"
+                        className="w-10 sm:w-12 text-center bg-night border border-white/10 py-2 font-display text-xl sm:text-2xl disabled:opacity-60"
+                      />
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Flag
+                        showName
+                        flag={m.away?.flag}
+                        name={m.away?.name ?? m.away_placeholder}
+                        sigla={m.away?.sigla ?? m.away_placeholder}
+                      />
+                    </div>
+                  </div>
+                  {!disabled && (
+                    <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={!changed || savingMatchId === m.id}
+                        onClick={() => saveMatch(m.id)}
+                        className="font-black uppercase tracking-widest"
+                      >
+                        <Save /> {savingMatchId === m.id ? "Salvando..." : "Salvar este palpite"}
+                      </Button>
+                    </div>
+                  )}
+                  {hasResult && (
+                    <div className="mt-2 text-center text-xs text-slate-400">
+                      Resultado oficial: {m.home_score} × {m.away_score}
+                    </div>
+                  )}
+                  {(m.status === "finished" ||
+                    m.status === "live" ||
+                    (m.status === "scheduled" && new Date(m.kickoff_at) <= new Date())) && (
+                    <div className="mt-3 flex justify-end border-t border-white/5 pt-3">
+                      <MatchParticipantPredictions match={m} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Tournament predictions */}
         </TabsContent>
 
         <TabsContent value="classificados" className="space-y-6 mt-6">
@@ -489,4 +495,3 @@ function PalpitesPage() {
     </div>
   );
 }
-
