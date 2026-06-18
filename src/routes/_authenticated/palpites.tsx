@@ -407,16 +407,23 @@ function PalpitesPage() {
       </div>
 
       {/* Tournament predictions */}
-      {(phaseFilter === "all" || phaseFilter === "group") && (
-        <TournamentSection
-          teams={teams}
-          value={tp}
-          existing={existingTp}
-          locked={tournamentLocked}
-          deadline={tournamentDeadline}
-          onChange={(k, v) => setTp((s) => ({ ...s, [k]: v }))}
-        />
-      )}
+        </TabsContent>
+
+        <TabsContent value="classificados" className="space-y-6 mt-6">
+          <BracketClassificados
+            teams={teams}
+            values={Object.fromEntries(
+              Array.from(new Set([...Object.keys(existingTp), ...Object.keys(tp)])).map((k) => [
+                k,
+                tp[k] !== undefined ? tp[k] : (existingTp[k] ?? ""),
+              ]),
+            )}
+            setValue={(k, v) => setTp((s) => ({ ...s, [k]: v }))}
+            locked={tournamentLocked}
+            deadline={tournamentDeadline}
+          />
+        </TabsContent>
+      </Tabs>
 
       <button
         onClick={() => setConfirmOpen(true)}
