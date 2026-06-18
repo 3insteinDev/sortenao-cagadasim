@@ -1,0 +1,1 @@
+ALTER TYPE public.tp_type ADD VALUE IF NOT EXISTS 'fourth_place';

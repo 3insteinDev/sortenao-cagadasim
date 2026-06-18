@@ -18,6 +18,7 @@ const tpSchema = z.object({
     "champion",
     "runner_up",
     "third",
+    "fourth_place",
   ]),
   group_letter: z.string().nullable().optional(),
   team_id: z.string().uuid(),

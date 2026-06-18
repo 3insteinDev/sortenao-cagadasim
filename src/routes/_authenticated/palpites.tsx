@@ -480,9 +480,10 @@ function TournamentSection({
   onChange: (k: string, v: string) => void;
 }) {
   const groups = Array.from(new Set(teams.map((t) => t.group_letter).filter(Boolean))) as string[];
-  function CountrySelect({ k }: { k: string }) {
+  function CountrySelect({ k, options }: { k: string; options?: Team[] }) {
     const v = value[k] ?? existing[k] ?? "";
-    const selected = teams.find((t) => t.id === v);
+    const list = options ?? teams;
+    const selected = list.find((t) => t.id === v) ?? teams.find((t) => t.id === v);
     const [open, setOpen] = useState(false);
 
     return (
@@ -527,7 +528,7 @@ function TournamentSection({
             <CommandList className="max-h-[260px]">
               <CommandEmpty>Nenhum país encontrado.</CommandEmpty>
               <CommandGroup>
-                {teams.map((t) => (
+                {list.map((t) => (
                   <CommandItem
                     key={t.id}
                     value={`${t.name} ${t.sigla}`}
@@ -585,19 +586,22 @@ function TournamentSection({
           Classificados dos Grupos
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {groups.map((g) => (
+          {groups.map((g) => {
+            const groupTeams = teams.filter((t) => t.group_letter === g);
+            return (
             <div key={g} className="bg-white/5 border border-white/10 p-3">
               <div className="font-display text-xl mb-2">Grupo {g}</div>
               <label className="text-[10px] uppercase tracking-widest text-slate-500">
                 1º colocado
               </label>
-              <CountrySelect k={`group_1st|${g}`} />
+              <CountrySelect k={`group_1st|${g}`} options={groupTeams} />
               <label className="text-[10px] uppercase tracking-widest text-slate-500 mt-2 block">
                 2º colocado
               </label>
-              <CountrySelect k={`group_2nd|${g}`} />
+              <CountrySelect k={`group_2nd|${g}`} options={groupTeams} />
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -606,6 +610,7 @@ function TournamentSection({
           ["champion", "Campeão", "🏆"],
           ["runner_up", "Vice-campeão", "🥈"],
           ["third", "Terceiro lugar", "🥉"],
+          ["fourth_place", "Quarto lugar", "🏅"],
         ].map(([k, l, e]) => (
           <div key={k} className="bg-white/5 border border-white/10 p-3">
             <div className="font-display text-xl mb-2">
