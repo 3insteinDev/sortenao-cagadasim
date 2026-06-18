@@ -480,9 +480,10 @@ function TournamentSection({
   onChange: (k: string, v: string) => void;
 }) {
   const groups = Array.from(new Set(teams.map((t) => t.group_letter).filter(Boolean))) as string[];
-  function CountrySelect({ k }: { k: string }) {
+  function CountrySelect({ k, options }: { k: string; options?: Team[] }) {
     const v = value[k] ?? existing[k] ?? "";
-    const selected = teams.find((t) => t.id === v);
+    const list = options ?? teams;
+    const selected = list.find((t) => t.id === v) ?? teams.find((t) => t.id === v);
     const [open, setOpen] = useState(false);
 
     return (
@@ -527,7 +528,7 @@ function TournamentSection({
             <CommandList className="max-h-[260px]">
               <CommandEmpty>Nenhum país encontrado.</CommandEmpty>
               <CommandGroup>
-                {teams.map((t) => (
+                {list.map((t) => (
                   <CommandItem
                     key={t.id}
                     value={`${t.name} ${t.sigla}`}
