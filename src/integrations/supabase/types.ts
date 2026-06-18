@@ -460,6 +460,7 @@ export type Database = {
         | "champion"
         | "runner_up"
         | "third"
+        | "fourth_place"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -600,6 +601,7 @@ export const Constants = {
         "champion",
         "runner_up",
         "third",
+        "fourth_place",
       ],
     },
   },
