@@ -189,7 +189,7 @@ export const saveTournamentResults = createServerFn({ method: "POST" })
     }
 
     for (const slot of slots.values()) {
-      let del = supabaseAdmin.from("tournament_results").delete().eq("result_type", slot.result_type);
+      let del = supabaseAdmin.from("tournament_results").delete().eq("result_type", slot.result_type as any);
       del = slot.group_letter == null ? del.is("group_letter", null) : del.eq("group_letter", slot.group_letter);
       const { error: dErr } = await del;
       if (dErr) throw dErr;
