@@ -10,6 +10,8 @@ import {
   adminUpdateUser,
   adminDeleteUser,
   syncResultsNow,
+  listTournamentResults,
+  saveTournamentResults,
 } from "@/lib/api/admin.functions";
 import { PHASE_LABEL, type Phase } from "@/lib/db/types";
 import { toast } from "sonner";
@@ -26,21 +28,151 @@ export const Route = createFileRoute("/_authenticated/admin")({
 });
 
 function Admin() {
-  const [tab, setTab] = useState<"matches" | "users" | "actions">("matches");
+  const [tab, setTab] = useState<"matches" | "classificados" | "users" | "actions">("matches");
   return (
     <div className="max-w-6xl mx-auto px-4 py-6 sm:py-8">
       <h1 className="font-display text-3xl sm:text-5xl uppercase italic mb-4 sm:mb-6">Painel Admin</h1>
       <div className="flex gap-2 border-b border-white/10 mb-6 overflow-x-auto">
-        {(["matches","users","actions"] as const).map((t) => (
+        {(["matches","classificados","users","actions"] as const).map((t) => (
           <button key={t} onClick={() => setTab(t)} className={`px-3 sm:px-4 py-2 text-xs uppercase tracking-widest font-bold whitespace-nowrap ${tab===t?"text-grass border-b-2 border-grass":"text-slate-500"}`}>
-            {t === "matches" ? "Jogos" : t === "users" ? "Usuários" : "Ações"}
+            {t === "matches" ? "Jogos" : t === "classificados" ? "Classificados" : t === "users" ? "Usuários" : "Ações"}
           </button>
         ))}
       </div>
       {tab === "matches" && <MatchesTab />}
+      {tab === "classificados" && <ClassificadosTab />}
       {tab === "users" && <UsersTab />}
       {tab === "actions" && <ActionsTab />}
     </div>
+  );
+}
+
+const GROUP_LETTERS = ["A","B","C","D","E","F","G","H","I","J","K","L"] as const;
+const FINAL_SLOTS: { type: string; label: string; icon: string }[] = [
+  { type: "champion", label: "Campeão", icon: "🏆" },
+  { type: "runner_up", label: "Vice", icon: "🥈" },
+  { type: "third", label: "3º Lugar", icon: "🥉" },
+  { type: "fourth_place", label: "4º Lugar", icon: "🏅" },
+];
+
+function ClassificadosTab() {
+  const [teams, setTeams] = useState<any[]>([]);
+  const [results, setResults] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const listFn = useServerFn(listTournamentResults);
+  const saveFn = useServerFn(saveTournamentResults);
+
+  async function reload() {
+    setLoading(true);
+    try {
+      const [t, r] = await Promise.all([
+        supabase.from("teams").select("*").order("name"),
+        listFn(),
+      ]);
+      setTeams(t.data ?? []);
+      const map: Record<string, string> = {};
+      for (const row of (r as any[]) ?? []) {
+        const key = `${row.result_type}|${row.group_letter ?? ""}`;
+        map[key] = row.team_id ?? "";
+      }
+      setResults(map);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao carregar classificados");
+    } finally {
+      setLoading(false);
+    }
+  }
+  useEffect(() => { reload(); }, []);
+
+  function set(key: string, value: string) {
+    setResults((prev) => ({ ...prev, [key]: value }));
+  }
+
+  async function save() {
+    setSaving(true);
+    try {
+      const payload = Object.entries(results).map(([key, team_id]) => {
+        const [result_type, group_letter] = key.split("|");
+        return {
+          result_type: result_type as any,
+          group_letter: group_letter || null,
+          team_id: team_id || null,
+        };
+      });
+      await saveFn({ data: { results: payload } });
+      toast.success("Classificados salvos. Rode 'Recalcular' para atualizar a pontuação.");
+      reload();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao salvar");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return <div className="py-8 text-center text-slate-500 uppercase tracking-widest text-xs flex items-center justify-center gap-2"><Loader2 className="size-4 animate-spin" /> Carregando...</div>;
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="bg-grass/10 border border-grass/30 p-3 text-xs text-slate-300">
+        Defina o 1º e 2º colocado de cada grupo e o Campeão / Vice / 3º / 4º lugar.
+        <br />Pontuação: <b>5 pts</b> por acerto de 1º/2º de grupo · <b>30 pts</b> Campeão · <b>15 pts</b> Vice · <b>10 pts</b> 3º · <b>10 pts</b> 4º.
+      </div>
+
+      <section className="space-y-3">
+        <h2 className="font-display text-xl uppercase italic">Fase de Grupos</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {GROUP_LETTERS.map((g) => {
+            const groupTeams = teams.filter((t) => t.group_letter === g);
+            return (
+              <div key={g} className="bg-white/5 border border-white/10 p-3 space-y-2">
+                <div className="text-[10px] uppercase tracking-widest text-grass font-bold">Grupo {g}</div>
+                <ResultSelect label="1º" teams={groupTeams} value={results[`group_1st|${g}`] ?? ""} onChange={(v) => set(`group_1st|${g}`, v)} />
+                <ResultSelect label="2º" teams={groupTeams} value={results[`group_2nd|${g}`] ?? ""} onChange={(v) => set(`group_2nd|${g}`, v)} />
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="font-display text-xl uppercase italic">Final</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {FINAL_SLOTS.map((s) => (
+            <div key={s.type} className="bg-white/5 border border-white/10 p-3 space-y-2">
+              <div className="text-[10px] uppercase tracking-widest text-grass font-bold">{s.icon} {s.label}</div>
+              <ResultSelect label="Time" teams={teams} value={results[`${s.type}|`] ?? ""} onChange={(v) => set(`${s.type}|`, v)} />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div className="flex justify-end">
+        <button onClick={save} disabled={saving} className="bg-grass text-night font-black uppercase tracking-tighter px-6 py-3 disabled:opacity-50">
+          {saving ? "Salvando..." : "Salvar Classificados"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ResultSelect({ label, teams, value, onChange }: { label: string; teams: any[]; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block">
+      <span className="text-[10px] uppercase tracking-widest text-slate-500">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-night border border-white/10 px-2 py-2 text-sm mt-1"
+      >
+        <option value="">—</option>
+        {teams.map((t) => (
+          <option key={t.id} value={t.id}>{t.flag} {t.name}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 

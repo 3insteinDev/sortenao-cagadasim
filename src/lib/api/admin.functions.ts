@@ -63,7 +63,7 @@ function pointsForKO(pred: { h: number; a: number }, res: { h: number; a: number
   return 0;
 }
 const TP_POINTS: Record<string, number> = {
-  group_1st: 5, group_2nd: 5, r16: 3, qf: 5, sf: 8, finalist: 12, champion: 30, runner_up: 15, third: 10,
+  group_1st: 5, group_2nd: 5, r16: 3, qf: 5, sf: 8, finalist: 12, champion: 30, runner_up: 15, third: 10, fourth_place: 10,
 };
 
 export const recalculateAll = createServerFn({ method: "POST" })
@@ -133,7 +133,7 @@ export const recalculateAll = createServerFn({ method: "POST" })
 export const setTournamentResult = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({
-    result_type: z.enum(["group_1st","group_2nd","r16","qf","sf","finalist","champion","runner_up","third"]),
+    result_type: z.enum(["group_1st","group_2nd","r16","qf","sf","finalist","champion","runner_up","third","fourth_place"]),
     group_letter: z.string().nullable().optional(),
     team_id: z.string().uuid(),
   }).parse(d))
@@ -146,6 +146,63 @@ export const setTournamentResult = createServerFn({ method: "POST" })
     });
     if (error) throw error;
     return { ok: true };
+  });
+
+const tournamentResultSchema = z.object({
+  result_type: z.enum([
+    "group_1st","group_2nd","r16","qf","sf","finalist","champion","runner_up","third","fourth_place",
+  ]),
+  group_letter: z.string().nullable().optional(),
+  team_id: z.string().uuid().nullable(),
+});
+
+export const listTournamentResults = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { data, error } = await context.supabase
+      .from("tournament_results")
+      .select("result_type,group_letter,team_id");
+    if (error) throw error;
+    return data ?? [];
+  });
+
+export const saveTournamentResults = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({ results: z.array(tournamentResultSchema) }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Replace strategy: for each slot the admin touches, delete prior rows
+    // for that (result_type, group_letter) then insert the new team if provided.
+    const slots = new Map<string, { result_type: string; group_letter: string | null; team_id: string | null }>();
+    for (const r of data.results) {
+      const key = `${r.result_type}|${r.group_letter ?? ""}`;
+      slots.set(key, {
+        result_type: r.result_type,
+        group_letter: r.group_letter ?? null,
+        team_id: r.team_id,
+      });
+    }
+
+    for (const slot of slots.values()) {
+      let del = supabaseAdmin.from("tournament_results").delete().eq("result_type", slot.result_type as any);
+      del = slot.group_letter == null ? del.is("group_letter", null) : del.eq("group_letter", slot.group_letter);
+      const { error: dErr } = await del;
+      if (dErr) throw dErr;
+      if (slot.team_id) {
+        const { error: iErr } = await supabaseAdmin.from("tournament_results").insert({
+          result_type: slot.result_type as any,
+          group_letter: slot.group_letter,
+          team_id: slot.team_id,
+        });
+        if (iErr) throw iErr;
+      }
+    }
+    return { ok: true, count: slots.size };
   });
 
 export const toggleUserBlock = createServerFn({ method: "POST" })
