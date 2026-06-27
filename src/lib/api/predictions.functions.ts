@@ -32,7 +32,7 @@ const matchParticipantsSchema = z.object({ match_id: z.string().uuid() });
 
 // Tournament classification predictions (group winners, champion, etc.) are
 // allowed until 2026-06-18 13:00 BRT (UTC-3) — i.e. 16:00 UTC.
-export const TOURNAMENT_PREDICTIONS_DEADLINE = "2026-06-18T16:00:00Z";
+export const TOURNAMENT_PREDICTIONS_DEADLINE = "2026-06-19T00:00:00Z";
 
 function pointsForMatch(
   phase: string,
