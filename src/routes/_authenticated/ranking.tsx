@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { MatchScoreOverview } from "@/components/app/MatchScoreOverview";
+import { TournamentPredictionsOverview } from "@/components/app/TournamentPredictionsOverview";
 
 export const Route = createFileRoute("/_authenticated/ranking")({ component: RankingPage });
 
@@ -47,6 +48,7 @@ function RankingPage() {
         )}
       </div>
       <MatchScoreOverview />
+      <TournamentPredictionsOverview />
     </div>
   );
 }
