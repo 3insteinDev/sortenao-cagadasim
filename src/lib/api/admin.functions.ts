@@ -58,7 +58,9 @@ function pointsForKO(pred: { h: number; a: number }, res: { h: number; a: number
   if (pred.h === res.h && pred.a === res.a) return 15;
   const predWinner = pred.h === pred.a ? 0 : pred.h > pred.a ? 1 : -1;
   const resWinner = res.h === res.a ? 0 : res.h > res.a ? 1 : -1;
-  if (predWinner === resWinner && resWinner !== 0) return 8;
+  if (predWinner === resWinner && resWinner !== 0) {
+    return pred.h === res.h || pred.a === res.a ? 11 : 8;
+  }
   if (pred.h === res.h || pred.a === res.a) return 3;
   return 0;
 }
