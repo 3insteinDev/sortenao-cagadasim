@@ -51,7 +51,9 @@ function pointsForMatch(
     if (predictedOutcome === currentOutcome) return oneScoreIsExact ? 7 : 5;
     return oneScoreIsExact ? 2 : 0;
   }
-  if (predictedOutcome === currentOutcome && currentOutcome !== 0) return 8;
+  if (predictedOutcome === currentOutcome && currentOutcome !== 0) {
+    return oneScoreIsExact ? 11 : 8;
+  }
   return oneScoreIsExact ? 3 : 0;
 }
 
