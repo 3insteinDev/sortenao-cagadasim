@@ -7,6 +7,7 @@ type OverviewData = Awaited<ReturnType<typeof getFinishedMatchScores>>;
 
 function pointsColor(points: number) {
   if (points === 10 || points === 15) return "text-gold";
+  if (points === 11) return "text-gold";
   if (points === 7 || points === 8) return "text-grass";
   if (points === 5) return "text-foreground";
   if (points === 2 || points === 3) return "text-slate-400";
