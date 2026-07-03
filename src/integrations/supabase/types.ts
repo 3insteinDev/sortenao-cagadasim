@@ -426,6 +426,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_match_prediction_points: {
+        Args: {
+          _phase: string
+          _prediction_away: number
+          _prediction_home: number
+          _result_away: number
+          _result_home: number
+          _status: string
+        }
+        Returns: number
+      }
       get_leaderboard: {
         Args: never
         Returns: {
@@ -445,6 +456,7 @@ export type Database = {
         Returns: boolean
       }
       recalculate_all_scores: { Args: never; Returns: Json }
+      refresh_profile_totals: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"

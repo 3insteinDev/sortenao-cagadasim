@@ -229,6 +229,7 @@ function Landing() {
             <div className="space-y-3">
               {[
                 ["Placar exato", "15 pts", "text-gold"],
+                ["Vencedor + um gol", "11 pts", "text-gold"],
                 ["Acertou vencedor", "8 pts", "text-grass"],
                 ["Acertou um gol", "3 pts", "text-slate-400"],
                 ["Errou tudo", "0 pts", "text-slate-500"],

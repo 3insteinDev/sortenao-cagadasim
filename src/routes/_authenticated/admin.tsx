@@ -118,7 +118,7 @@ function ClassificadosTab() {
     <div className="space-y-8">
       <div className="bg-grass/10 border border-grass/30 p-3 text-xs text-slate-300">
         Defina o 1º e 2º colocado de cada grupo e o Campeão / Vice / 3º / 4º lugar.
-        <br />Pontuação: <b>5 pts</b> por acerto de 1º/2º de grupo · <b>30 pts</b> Campeão · <b>15 pts</b> Vice · <b>10 pts</b> 3º · <b>10 pts</b> 4º.
+        <br />Pontuação: <b>5 pts</b> por acerto de 1º/2º de grupo · <b>30 pts</b> Campeão · <b>15 pts</b> Vice · <b>10 pts</b> 3º · <b>8 pts</b> 4º.
       </div>
 
       <section className="space-y-3">

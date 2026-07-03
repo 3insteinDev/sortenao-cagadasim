@@ -109,5 +109,10 @@ export async function syncFootballDataResults() {
     else unchanged++;
   }
 
+  if (updated > 0) {
+    const { error: recalcError } = await supabaseAdmin.rpc("recalculate_all_scores");
+    if (recalcError) throw recalcError;
+  }
+
   return { updated, unchanged, skippedManual, unmatched, fetched: remote.length };
 }
