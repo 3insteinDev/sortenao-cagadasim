@@ -277,7 +277,7 @@ const TP_POINTS: Record<string, number> = {
   champion: 30,
   runner_up: 15,
   third: 10,
-  fourth_place: 10,
+  fourth_place: 8,
 };
 
 export const getTournamentPredictionsOverview = createServerFn({ method: "GET" })

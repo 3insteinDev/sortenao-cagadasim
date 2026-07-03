@@ -17,11 +17,14 @@ export const setMatchResult = createServerFn({ method: "POST" })
   }).parse(d))
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-    const { error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("matches")
       .update({ home_score: data.home_score, away_score: data.away_score, status: data.status })
       .eq("id", data.match_id);
     if (error) throw error;
+    const { error: recalcError } = await supabaseAdmin.rpc("recalculate_all_scores");
+    if (recalcError) throw recalcError;
     return { ok: true };
   });
 
