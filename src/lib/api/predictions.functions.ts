@@ -135,7 +135,6 @@ export const getFinishedMatchScores = createServerFn({ method: "GET" })
     const [
       { data: matches, error: matchesError },
       { data: participants, error: participantsError },
-      { data: predictions, error: predictionsError },
     ] = await Promise.all([
       supabaseAdmin
         .from("matches")
@@ -148,14 +147,9 @@ export const getFinishedMatchScores = createServerFn({ method: "GET" })
         .from("leaderboard_entries")
         .select("id,nickname,total_points")
         .order("total_points", { ascending: false }),
-      supabaseAdmin
-        .from("predictions")
-        .select("user_id,match_id,home_score,away_score,points")
-        .range(0, 99999),
     ]);
     if (matchesError) throw matchesError;
     if (participantsError) throw participantsError;
-    if (predictionsError) throw predictionsError;
 
     const finishedMatches = (matches ?? []).map((match) => ({
       ...match,
@@ -163,9 +157,32 @@ export const getFinishedMatchScores = createServerFn({ method: "GET" })
       away: Array.isArray(match.away) ? (match.away[0] ?? null) : match.away,
     }));
     const finishedById = new Map(finishedMatches.map((match) => [match.id, match]));
+    const finishedMatchIds = finishedMatches.map((match) => match.id);
+    const predictions: Array<{
+      user_id: string;
+      match_id: string;
+      home_score: number;
+      away_score: number;
+      points: number | null;
+    }> = [];
+
+    if (finishedMatchIds.length > 0) {
+      const pageSize = 1000;
+      for (let from = 0; ; from += pageSize) {
+        const { data: predictionPage, error: predictionsError } = await supabaseAdmin
+          .from("predictions")
+          .select("user_id,match_id,home_score,away_score,points")
+          .in("match_id", finishedMatchIds)
+          .range(from, from + pageSize - 1);
+
+        if (predictionsError) throw predictionsError;
+        predictions.push(...(predictionPage ?? []));
+        if (!predictionPage || predictionPage.length < pageSize) break;
+      }
+    }
     const scoresByUser = new Map<string, Record<string, { prediction: string; points: number }>>();
 
-    for (const prediction of predictions ?? []) {
+    for (const prediction of predictions) {
       const match = finishedById.get(prediction.match_id);
       if (!match || match.home_score == null || match.away_score == null) continue;
       const userScores = scoresByUser.get(prediction.user_id) ?? {};
