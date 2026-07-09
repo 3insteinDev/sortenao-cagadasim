@@ -148,7 +148,10 @@ export const getFinishedMatchScores = createServerFn({ method: "GET" })
         .from("leaderboard_entries")
         .select("id,nickname,total_points")
         .order("total_points", { ascending: false }),
-      supabaseAdmin.from("predictions").select("user_id,match_id,home_score,away_score,points"),
+      supabaseAdmin
+        .from("predictions")
+        .select("user_id,match_id,home_score,away_score,points")
+        .range(0, 99999),
     ]);
     if (matchesError) throw matchesError;
     if (participantsError) throw participantsError;
